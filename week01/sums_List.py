@@ -1,11 +1,28 @@
-# For - Mais simples e automático.
-def usando_For (nums):
+def usando_For (nums: int) -> int:
+    """ 
+    Função com For - Mais simples e automático.
+
+    Args:
+        (nums: int): Recebe numeros inteiros de uma lista.
+
+    Returns:
+        Retorna a soma de todos os numeros da lista "FOR".
+    """
     total = 0
     for numero in nums:
         total += numero
     return total
-# While - Mais complexo e manual.
-def usando_While(nums):
+
+def usando_While(nums: int) -> int:
+    """
+    Função com While - Mais complexo e manual.
+
+    Args:
+        (nums: int): Recebe numeros inteiros de uma lista.
+
+    Returns: 
+        Retorna a soma de todos os numeros da lista.
+    """
     total = 0
     indice = 0
     while indice < len(nums):

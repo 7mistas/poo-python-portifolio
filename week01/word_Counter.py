@@ -1,8 +1,19 @@
-# Importa um (regex) modulo de expressões regulares.
+""" 
+Modulo importa um (regex) de expressões regulares.
+
+Este modulo ajuda na captação da frequencia das palavras, ignorando as pontuações do texto.
+"""
 import re
 
-# Função para contar as palavras de um texto simples.
-def counter_words(text):
+def counter_words(text: str) -> dict:
+    """ 
+    Função para contar as palavras de um texto simples.
+    
+    Args:
+        (text: str): Recebe um valor de string de um texto de exemplo.
+    Returns:
+        Retorna a frequencia das palavras no texto em formato {chave: valor}.    
+    """
     # Converte o texto para letras minusulas. (ignore case)
     text_lower = text.lower()
 
@@ -23,9 +34,9 @@ def counter_words(text):
             # Adiciona a palavra(chave) e sua primeira vez(valor) ao dic
             word_freq[word] = 1
     # Exibe o resultado
-    print (word_freq)
+    return word_freq
 
 # Texto simples demonstrativo.    
-view_text = "Olá, eu, eu, eu sei o que você quer!?"
+view_text = "Olá, eu, eu, nós sabemos o que você quer!?"
 # Executando a função.
-counter_words(view_text)
+print(f"Palavras:", counter_words(view_text))

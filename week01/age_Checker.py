@@ -1,10 +1,13 @@
-# Função para verificar a idade.
-def pode_dirigir(idade):
-
-    # Idade mínima para dirigir.
+def pode_dirigir(idade: int) -> int:
+    """ 
+    Função para verificação da idade do usuário.
+    
+    Args:
+        (idade: int): Recebe o valor inteiro da idade.
+    Returns:
+        int: Comparação do valor da idade em relação a minima permitida.
+    """
     IDADE_MINIMA = 18
-
-    # Retorno do valor em 
     return idade >= IDADE_MINIMA
 
 #  Tentativa da entrada da idade e tratamento de erro.
