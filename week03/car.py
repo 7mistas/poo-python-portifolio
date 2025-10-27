@@ -1,39 +1,30 @@
 class Carro:
-    def __init__(self, modelo="N/A", cor="N/A", ano="N/A", status=False):
+    """ Classe Carro que cria objetos com os seguintes atributos abaixo"""
+    total_carros = 0
+    def __init__(self, modelo: str, cor: str, ano: int, status: bool = False) -> None:
+        """Inicializa o objeto da class Carro e seus atributos"""        
         self.modelo = modelo
         self.cor = cor
         self.ano = ano
         self.status = status
+        Carro.total_carros += 1
 
-    def ligar(self):
+    def ligar(self) -> bool:
+        """Função para LIGAR o objeto Carro, mudando seu valor booleano"""
         if not self.status:
             self.status = True
         return self.status
 
-    def desligar(self):
+    def desligar(self) -> bool:
+        """Função para DESLIGAR o objeto Carro, mudando seu valor booleano"""
         if self.status:
             self.status = False
-        return carro.status
+        return self.status
 
-    def info(self):
-        print(f"Modelo: {self.modelo}\n"
+    def info(self) -> str:
+        """Função para LISTAR os atributos dos objetos"""
+        return(f"Modelo: {self.modelo}\n"
                 f"Cor: {self.cor}\n"
                 f"Ano: {self.ano}\n"       
-                f"Status: {self.status}")
+                f"Status: {'Ligado' if self.status else 'Desligado'}")
 
-def main():
-    meu_carro = Carro()
-    print("=" * 50)
-    meu_carro.modelo = input("Digite o modelo: ")
-    meu_carro.cor = input("Digite a cor: ")
-    try:
-        meu_carro.ano = int(input("Digite o ano do veículo: "))
-    except ValueError:
-        print("Ano inválido")
-
-    print("=" * 50)
-    print("Modelo Definido: ")
-    meu_carro.info()
-
-if __name__ == "__main__":
-    main()
