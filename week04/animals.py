@@ -1,41 +1,42 @@
+"""Demonstração de POO com herança e polimorfismo simples"""
 class Animal:
     def __init__(self, nome: str, idade: int) -> None:
         self.nome = nome
         self.idade = idade
 
     def falar(self) -> str:
-        return "O {self.nome} está falando"
+        return f"O {self.nome} está falando"
 
 class Cachorro(Animal):
     def __init__(self, nome: str, idade: int) -> None:
         super().__init__(nome, idade)
 
     def falar(self) -> str:
-        return "O {self.nome} latiu!"
+        return f"O {self.nome} latiu!"
 
 class Gato(Animal):
     def __init__(self, nome: str, idade: int) -> None:
         super().__init__(nome, idade)
     
     def falar(self) -> str:
-        return "O {self.nome} miou!"
+        return f"O {self.nome} miou!"
 
-class Pasaro(Animal):
+class Passaro(Animal):
     def __init__(self, nome: str, idade: int ) -> None:
         super().__init__(nome, idade)
         
     def falar(self) -> str:
-        return "O {self.nome} piou!"
+        return f"O {self.nome} piou!"
 
 def main():
-    cachorro_latiu = Cachorro.falar
-    print(cachorro_latiu)
+    meu_cachorro = Cachorro("Buddy", 3)
+    print(meu_cachorro.falar())
 
-    gato_miou = Gato.falar
-    print(gato_miou)
+    meu_gato = Gato("Leon", 2)
+    print(meu_gato.falar())
 
-    passaro_piou = Passaro.falar
-    print(passaro_piou)
+    meu_passaro = Passaro("Pablo", 4)
+    print(meu_passaro.falar())
 
-def __name__ == "__main__":
+if __name__ == "__main__":
     main()
