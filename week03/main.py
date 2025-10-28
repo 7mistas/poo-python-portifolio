@@ -70,7 +70,7 @@ def main() -> None:
                 for carro in frota.veiculos:
                     if carro.modelo == modelo:
                         carro.ligar()
-                        print(f"O carro está 'Ligado' if carro.status else 'Desligado' !")
+                        print(f"O carro está {'Ligado' if carro.status else 'Desligado'}!")
                         encontrado = True
                         break
                 if not encontrado:
@@ -83,7 +83,7 @@ def main() -> None:
                 for carro in frota.veiculos:
                     if carro.modelo == modelo:
                         carro.desligar()
-                        print(f"Carro está {'Ligado' if carro.status else 'Desligado'!")
+                        print(f"Carro está {'Ligado' if carro.status else 'Desligado'}!")
                         encontrado = True
                         break
                 if not encontrado: 
@@ -101,5 +101,4 @@ def main() -> None:
             print("[ERRO!] Opção invalida!")
 
 if __name__ == "__main__":
-     print(dados_do_carro)
-   main()
+        main()
