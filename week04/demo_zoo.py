@@ -27,5 +27,7 @@ def main():
     print("==== Listando os animais do zoo...====")
     animais_listados.mostrar_animais()
 
+    print("==== Fim da demostração do código zoo ====")
+
 if __name__ == "__main__":
     main()
