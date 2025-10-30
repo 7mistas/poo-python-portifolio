@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 class Conta:
     def __init__(self, saldo: int) -> None:
         self._saldo = 0
