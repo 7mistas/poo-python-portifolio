@@ -1,18 +1,17 @@
 from decimal import Decimal
 
 class Conta:
-    def __init__(self, saldo: int) -> None:
-        self._saldo = 0
+    def __init__(self) -> None:
+        self._saldo = Decimal("0.00")
 
-    def depositar(self, valor: int) -> int:
-        self.valor += self.saldo
-        return self.saldo
+    def depositar(self, valor: Decimal) -> Decimal:
+        self._saldo += valor
+        return self._saldo
 
-    def sacar(self, valor: int) -> int:
-        self.valor -= self.saldo
-        return self saldo
+    def sacar(self, valor: Decimal) -> Decimal:
+        self._saldo -= valor
+        return self._saldo
 
     @property
     def saldo_atual(self):
-        return self.saldo
-
+        return self._saldo
