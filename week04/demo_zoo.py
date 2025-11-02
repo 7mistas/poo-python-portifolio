@@ -1,6 +1,9 @@
+""" Modulo que importa de animal.py a Classe Mae e respectivas Filhas. """
 from animals import Animal, Cachorro, Gato, Passaro
+""" Modulo que importa de zoo.py a lista e seu método. """
 from zoo import Zoologico
 
+""" Inicia o código de demontração do Zoológico.  """
 def main():
     print("==== Demostração do Zoo ====")
     print("\n=" * 50)
