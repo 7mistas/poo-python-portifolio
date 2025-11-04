@@ -4,8 +4,8 @@ from message import Mensagem
 from typing import List
 
 class Chat:
-    def _init__(self, ):
-        self.db = Database()
+    def __init__(self):
+        self.db = Database("chat.db")
         self.usuario_atual = None
 
     def fazer_login(self, usuario: str) -> bool:
@@ -16,13 +16,23 @@ class Chat:
         print(f"Bem vindo, {self.usuario_atual}!")
         return True
 
-    def enviar_mensagem(self, conteudo: str) - bool:
-        if not usuario or usuario.strp() == "":
-            print("[ERRO!] Voce precisa estar logado!")
+    def enviar_mensagem(self, conteudo: str) -> bool:
+        if not self.usuario_atual or self.usuario_atual.strip() == "":
+            print("[ERRO!] Voce precsa estar logado!")
 
-        if not conteudo or conteudo.stip() = "":
+        if not conteudo or conteudo.strip() == "":
             print("[ERRO!] Mensagem vazia!")
             return False
+
+        sucesso = self.db.inserir_mensagem(self.usuario_atual, conteudo.strip())
+        if sucesso:
+            print("Mensagem enviada!")
+
+        else:
+            print("Mensagem não enviada!")
+
+        return sucesso
+
     
     def carregar_mensagens(self, limite: int = 50) -> List[Mensagem]:
         dados = self.db.listar_mensagens(limite)
@@ -47,7 +57,7 @@ class Chat:
         print("=" * 50)
 
         for mensagem in mensagens:
-            print(msg.formatar())
+            print(mensagem.formatar())
     
     def buscar_mensagens_usuario(self, usuario: str) -> None:
         dados = self.db.buscar_usuario(usuario)
