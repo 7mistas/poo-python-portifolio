@@ -1,25 +1,32 @@
 from chat import Chat
 
 def menu():
-    print("=" * 50)
-    print("Menu chat: ")
-    print("1 - Enviar mensagem")
-    print("2 - Listar mensagens")
-    print("3 - Buscar mensagens pelo usuário")
-    print("4 - Trocar usuário")
-    print("5 - Limpar o chat")
-    print("0 - Sair")
-    print("=" * 50)
+    """
+    Exibe o menu com opções para o usuario.
+    """
+    while True:
+        print("=" * 50)
+        print("Menu chat: ")
+        print("1 - Enviar mensagem")
+        print("2 - Listar mensagens")
+        print("3 - Buscar mensagens pelo usuário")
+        print("4 - Trocar usuário")
+        print("5 - Limpar o chat")
+        print("0 - Sair")
+        print("=" * 50)
+    
+        try:
+            opcao_str = input("Escolha uma opção: ").strip()
+            opcao = int(opcao_str)
+            return opcao 
 
-    try:
-        opcao_str = input("Escolha uma opção: ").strip()
-        opcao = int(opcao_str)
-        return opcao 
-
-    except ValueError:
-        print("[ERRO!] Somente numeros são válidos!")
+        except ValueError:
+            print("[ERRO!] Somente numeros são válidos!")
 
 def main():
+    """
+    Executa as opções para o usuario selecionar.
+    """
     chat = Chat()
 
     while True:
@@ -61,7 +68,7 @@ def main():
 
         else:
             print("[ERRO!] Opção inválida!")
-            return
+            continue
     
 if __name__ == "__main__":
     main()
