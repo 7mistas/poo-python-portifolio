@@ -47,7 +47,9 @@ def main():
 
         elif opcao == 4:
             print("==== Saindo... ====")
-            chat.fazer_login()
+            novo_usuario = input("Digite o novo usuario: ")
+            if  chat.fazer_login(novo_usuario):
+                usuario = novo_usuario
         
         elif opcao == 5:
             print("=== Limpar o chat ====")

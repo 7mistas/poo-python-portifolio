@@ -8,12 +8,13 @@ class Mensagem:
         self.id = id_msg
         self.usuario = usuario
         self.conteudo = conteudo
-        self.timestamp = timestamp or datetime.now()
+        if timestamp is None:
+            self.timestamp = datetime.now()
+        else:
+            self.timestamp = timestamp
 
     def formatar(self):
         data_formatada = self.timestamp.strftime("%d/%m/%Y - %H:%M:%S")
-        return f"[{self.timestamp}] {self.usuario}: {self.conteudo}"       
-                                                                          
+        return f"[{data_formatada}] {self.usuario}: {self.conteudo}"       
     def __str__(self):                                                    
         return self.formatar()       
-        

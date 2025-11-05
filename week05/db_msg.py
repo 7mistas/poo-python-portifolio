@@ -23,7 +23,7 @@ class Database:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 usuario TEXT NOT NULL,
                 mensagem TEXT NOT NULL,
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+                timestamp TEXT TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
         conn.commit()
         conn.close()
 
@@ -31,19 +31,15 @@ class Database:
         try:
             conn = self.conectar()
             cursor = conn.cursor()
-
-            #timestamp = datetime.now().isoformat()
             
             cursor.execute('''
-                INSERT INTO mensagens (usuario, mensagem)
-                VALUES(?, ?)''', (usuario, mensagem))
-
+                INSERT INTO mensagens (usuario, mensagem, timestamp)
+                VALUES(?, ?, ?)''', (usuario, mensagem, datetime.now()))
             conn.commit()
             conn.close()
             return True
 
         except Exception as e:
-            print(e)
             print(f"[ERRO!] Ao inserir a mensagem: {str(e)}")
             return False
 
@@ -51,6 +47,7 @@ class Database:
         try:
             conn = self.conectar()
             cursor = conn.cursor()
+
             cursor.execute('''
                 SELECT id, usuario, mensagem, timestamp
                 FROM mensagens
@@ -71,15 +68,14 @@ class Database:
             cursor = conn.cursor()
 
             cursor.execute('''
-                SELECT id, usuario, mensagem, timesatamp
+                SELECT id, usuario, mensagem, timestamp
                 FROM mensagens
                 WHERE usuario LIKE ?
                 ORDER BY timestamp ASC
                 ''', (f'%{usuario}%',))
 
             mensagens = cursor.fetchall()
-            print(mensagens)
-            conn.closed()
+            conn.close()
             return mensagens
         except Exception as e:
             print(f"[ERRO!] Erro ao buscar o usuário!: {e}")
@@ -98,7 +94,7 @@ class Database:
             print(f"[ERRO!] Ao deletar a mensagem: {e}")
             return False
         
-    def limpar_chat(self) -> bool:
+    def deletar_chat(self) -> bool:
         try:
             conn = self.conectar()
             cursor = conn.cursor()
@@ -106,10 +102,8 @@ class Database:
             cursor.execute('DELETE FROM mensagens')
 
             conn.commit()
-            conn.closed()
+            conn.close()
             return True
         except Exception as e:
             print(f"[ERRO!] Ao deletar todas as mensagens: {e}")  
             return False
-
-

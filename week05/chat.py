@@ -39,8 +39,10 @@ class Chat:
         mensagens = []
 
         for id_msg, usuario, mensagem, data_str in dados:
+            if data_str is None:
+                continue
             timestamp = datetime.fromisoformat(data_str)
-            msg = Mensagem(usuario, mensagem, timestamp)
+            msg = Mensagem(usuario, mensagem, id_msg, timestamp)
             mensagens.append(msg)
 
         return mensagens
@@ -70,10 +72,13 @@ class Chat:
         print(f"Mensagens do {usuario}: ")
         print("=" * 50)
 
-        for id_msg, usuario, mensages. timestamp in dados:
-            timestamp = datatime.fromisoformat(data_str)
-            msg = Mensagem(usuario, conteudo, timestamp)
+        for id_msg, usuario, mensagem, data_str in dados:
+            timestamp = datetime.fromisoformat(data_str)
+            msg = Mensagem(usuario, mensagem, id_msg, timestamp)
             print(msg.formatar())
             
         print("=" * 50)
         
+    def limpar_chat(self):
+        print("Limpando histórico de mensagens")
+        self.db.deletar_chat()
