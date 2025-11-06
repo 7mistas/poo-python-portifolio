@@ -1,6 +1,7 @@
 from datetime import datetime
 from db_msg import Database
 from message import Mensagem
+from auth import Autenticacao
 from typing import List
 
 class Chat:
@@ -12,26 +13,9 @@ class Chat:
         Inicializa o banco de dados e defini o nome do usuario_atual com o padrão: None.
         """
         self.db = Database("chat.db")
-        self.usuario_atual = None
+        self.auth = Autenticacao()
+        #self.usuario_atual = None
 
-    def fazer_login(self, usuario: str) -> bool:
-        """
-        Tenta conectar com o nome de usuario fornecido.
-
-        Args:
-            usuario (str): Nome fornecido pelo usuario para logar.
-
-        Returns:
-            bool: True se o login for bem sucedido,
-            False caso o contrário.
-        """
-
-        if not usuario or usuario.strip() == "":
-            print("[Erro!] Usuário inválido!")
-            return False
-        self.usuario_atual = usuario
-        print(f"Bem vindo, {self.usuario_atual}!")
-        return True
 
     def enviar_mensagem(self, conteudo: str) -> bool:
         """
@@ -45,13 +29,15 @@ class Chat:
             False caso o contrário.
         """
         # Validações de usuário e conteudo: 
-        if not self.usuario_atual or self.usuario_atual.strip() == "":
+        if not self.auth_esta_logado:
+            return False
             print("[ERRO!] Voce precsa estar logado!")
 
         if not conteudo or conteudo.strip() == "":
             print("[ERRO!] Mensagem vazia!")
             return False
 
+        usuario = self.auth.get_usuario_atual()
         # Insere a mensagem no banco de dados:
         sucesso = self.db.inserir_mensagem(self.usuario_atual, conteudo.strip())
         if sucesso:
