@@ -31,9 +31,10 @@ class Autenticacao:
     def esta_logado(self) -> bool:
         return self.usuario_logado is not None
 
+    def get_usuario_atual(self) -> Optional[str]:
+        return self.usuario_logado
+
     def exibir_info_usuario(self) -> Optional[dict]:
         if self.id_logado:
-            return self.db.obter_info(self.id_logado)
+           return self.db.obter_info(self.id_logado)
         return None
-
-
