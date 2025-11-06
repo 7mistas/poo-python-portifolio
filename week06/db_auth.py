@@ -144,6 +144,3 @@ class Database_Auth:
             print(f"[ERRO] Ao buscar usuário!")
             return None
 
-
-
-
