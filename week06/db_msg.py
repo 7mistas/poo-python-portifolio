@@ -31,17 +31,26 @@ class Database:
         Cria a tabela mensagens se ela não existir.
         Garante  que o esquema de dados esteja correto.
         """
-        conn = self.conectar()
-        cursor = conn.cursor()
 
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS mensagens (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                usuario TEXT NOT NULL,
-                mensagem TEXT NOT NULL,
-                timestamp TEXT TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-        conn.commit()
-        conn.close()
+        conn = None
+        try:
+            conn = self.conectar()
+            cursor = conn.cursor()
+
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS mensagens (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    usuario TEXT NOT NULL,
+                    mensagem TEXT NOT NULL,
+                    timestamp TEXT TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+            conn.commit()
+        except Exception as e:
+            if conn:
+                conn.rollback
+
+        finally:
+            if conn:
+                conn.close()
 
     def inserir_mensagem(self, usuario: str, mensagem: str) -> bool:
         """
@@ -55,6 +64,7 @@ class Database:
             bool: True se a mensagem foi registrada no banco de dado,
             False caso contrário.
         """
+        conn = None
         try:
             conn = self.conectar()
             cursor = conn.cursor()
@@ -63,12 +73,18 @@ class Database:
                 INSERT INTO mensagens (usuario, mensagem, timestamp)
                 VALUES(?, ?, ?)''', (usuario, mensagem, datetime.now()))
             conn.commit()
-            conn.close()
             return True
 
         except Exception as e:
+            if conn:
+                conn.rollback()
+
             print(f"[ERRO!] Ao inserir a mensagem: {str(e)}") #Essa saida complexa de except.
             return False
+
+        finally:
+            if conn:
+                conn.close()
 
     def listar_mensagens(self, limite: int = 50) -> List[Tuple]:
         """
@@ -80,7 +96,7 @@ class Database:
         Returns:
             List [Tuple]: Retorna uma lista de tuplas com os dados de cada mensagens.
         """
-        
+        conn = None
         try:
             conn = self.conectar()
             cursor = conn.cursor()
@@ -93,11 +109,15 @@ class Database:
                 ''', (limite,))
 
             mensagens = cursor.fetchall()
-            conn.close()
             return mensagens
 
         except Exception as e:
             print(f"[ERRO!] Erro ao listar as mensagens: {e}")
+            return []
+
+        finally:
+            if conn:
+                conn.close()
 
     def buscar_usuario(self, usuario: str) -> List[Tuple]:
         """
@@ -109,6 +129,7 @@ class Database:
         Returns:
             List [Tuple]: Uma lista de tuplas com as mensagens do usuario.
         """
+        conn = None
         try:
             conn = self.conectar()
             cursor = conn.cursor()
@@ -122,13 +143,16 @@ class Database:
                 ''', (f'%{usuario}%',))
 
             mensagens = cursor.fetchall()
-            conn.close()
             return mensagens
+
         except Exception as e:
             print(f"[ERRO!] Erro ao buscar o usuário!: {e}")
             return []
+        
+        finally:
+            if conn:
+                conn.close()
 
-    # Ainda à incremntar:
     def deletar_mensagem(self, id_mensagem: str ) -> bool:
         """
         Deleta uma mensagem pelo ID do usuário.
@@ -140,19 +164,26 @@ class Database:
             bool: True sa a mensagem for deletada do banco,
             False caso contrário
         """
+        conn = None
         try:
             conn = self.conectar()
             cursor = conn.cursor()
             cursor.execute('DELETE FROM mensagens WHERE id = ?', (id_mensagem,))
 
             conn.commit()
-            conn.close()
             return True
+
         except Exception as e:
+            if conn:
+                conn.rollback()
             print(f"[ERRO!] Ao deletar a mensagem: {e}")
             return False
+
+        finally:
+            if conn:
+                conn.close()
         
-    def deletar_chat(self) -> bool:
+    def deletar_chat(self) -> bool: # Fechado na ultima versão.
         """
         Deleta todas as mensagens do chat.
 
@@ -160,6 +191,7 @@ class Database:
             bool: True se todas mensagens forem deletadas do banco,
             False caso o contrário.
         """
+        conn = None
         try:
             conn = self.conectar()
             cursor = conn.cursor()
@@ -167,8 +199,14 @@ class Database:
             cursor.execute('DELETE FROM mensagens')
 
             conn.commit()
-            conn.close()
             return True
+
         except Exception as e:
+            if conn:
+                conn.rollback()
             print(f"[ERRO!] Ao deletar todas as mensagens: {e}")  
             return False
+
+        finally:
+            if conn:
+                conn.close()

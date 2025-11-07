@@ -2,14 +2,21 @@ from chat import Chat
 from cloud_config import Cloud_Config
 
 def menu_login():
-    print("=" * 20 + "CHAT AWS")
+    print("=" * 18, "CHAT ☁️  AWS", "=" * 19)
     print("=" * 50)
     print("1 - Fazer Login")
     print("2 - Criar Conta")
     print("3 - Simular Deploy AWS")
     print("0 - Sair")
     print("=" * 50)
-    return input("Escolha uma opção: ").strip()
+    try:
+        opcao_str = input("Escolha uma opção: ").strip()
+        opcao = int(opcao_str)
+        return opcao 
+
+    except ValueError:
+        print("[ERRO!] Somente numeros são válidos!")
+
 
 def menu_chat():
     """
@@ -46,23 +53,16 @@ def main():
     else:
         print("[ERRO] Conexão com o servidor na nuvem não estabelecida.")
 
-
     while True:
-        print("==== Bem vindo ao chat ====")
-        usuario = input("Digite seu nome para entrar: ")
-        if chat.fazer_login(usuario):
-            break
-
-    while True:
-        opcao = menu_chat()
+        opcao = menu_login()
 
         if opcao == 1:
             print("==== Faça o login 🔑 ====")
-            usuario = input("Usuário: ").strip
-            senha = input("Senha: ").strip
+            usuario = input("Usuário: ").strip()
+            senha = input("Senha: ").strip()
 
             sucesso, mensagem = chat.auth.login(usuario, senha)
-            print(f"\n{mensagem}")
+            print(f"\n{mensagem}\n")
 
             if sucesso:
                 while chat.auth.esta_logado():
@@ -81,10 +81,13 @@ def main():
                         print(f"{'=' * 60}\n")
 
 
-                if opcao == 2: 
+                elif opcao == 2: 
                     print("==== Enviar Mensagem 📤 ====")
                     conteudo = input(f"Digite a sua mensagem, {usuario}: ")
-                    chat.enviar_mensagem(conteudo)
+                    if conteudo.strip():
+                        chat.enviar_mensagem(conteudo)
+                    else:
+                        print("Mensagens não podem ser vazia!")
 
                 elif opcao == 3:
                     print("==== Histórico 📋 ====")
@@ -111,12 +114,12 @@ def main():
 
         elif opcao == 2:
             print("==== Criar Conta 📝 ====")
-            usuario = input("Defina seu usuario: ").strip
-            senha = input("Define sua senha (min. 6 caracteres): ").strip
-            email = input("Define seu email: ").strip
+            usuario = input("Defina seu usuario: ").strip()
+            senha = input("Define sua senha (min. 6 caracteres): ").strip()
+            email = input("Define seu email: ").strip()
             
             sucesso, mensagem = chat.auth.registrar(usuario, senha, email)
-            print("\nmensagem")
+            print(f"\n{mensagem}\n")
 
         elif opcao == 3: 
             cloud.simular_deploy_aws()

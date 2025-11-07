@@ -1,17 +1,17 @@
 from db_auth import Database_Auth
-from typing import Optional
+from typing import Optional, Tuple
 
 class Autenticacao:
     def __init__(self):
         self.db_auth = Database_Auth()
-        self.usuario_logado = Optional[int] = None
-        self.id_logado = Optional[int] = None
+        self.usuario_logado: Optional[str] = None
+        self.id_logado: Optional[int] = None
 
-    def registrar(self, usuario: str, senha: str, email: "") -> Tuple[bool, str]:
-        return self.db_auth.registrar(usuario, senha, email)
+    def registrar(self, usuario: str, senha: str, email: str = "") -> Tuple[bool, str]:
+        return self.db_auth.registrar_usuario(usuario, senha, email)
 
     def login(self, usuario: str, senha: str) -> Tuple[bool, str]:
-        autenticado, user_id = self.db.autenticar_usuario(usuario, senha)
+        autenticado, user_id = self.db_auth.autenticar_usuario(usuario, senha)
 
         if autenticado:
             self.id_logado = user_id

@@ -1,133 +1,153 @@
 import bcrypt
 import sqlite3
-import pathlib import Path
+from pathlib import Path
+from typing import Optional, Tuple
+from datetime import datetime
 
 class Database_Auth:
     def __init__(self, db_nome: str = "chat.db"):
         self.db_nome = "db_auth.db"
         self.criar_tabela_usuarios()
 
-    def conectar(self) -> sqlite3.Connetion:
+    def conectar(self) -> sqlite3.Connection:
         caminho_base = Path(__file__).parent
         caminho_completo = caminho_base / self.db_nome
+
         return sqlite3.connect(caminho_completo)
 
     def criar_tabela_usuarios(self):
-        conn = self.conectar()
-        cursor = conn.cusrsor()
+        conn = None
+        try:
+            conn = self.conectar()
+            cursor = conn.cursor()
 
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS usuarios (
-                id INTEGER PRYMARY KEY AUTOINCREMENT
-                usuario TEXT UNIQUE NOT NULL,
-                hash_senha TEXT UNIQUE NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                ultimo_login TIMESTAMP
-            )
-        ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS usuarios (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    usuario TEXT UNIQUE NOT NULL,
+                    hash_senha TEXT UNIQUE NOT NULL,
+                    email TEXT UNIQUE NOT NULL,
+                    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    ultimo_login TIMESTAMP
+                )
+            ''')
+            conn.commit()
+        finally:
+            conn.close()
+
 
     def gerar_hash(self, senha: str) -> str:
-        senha_bytes = senha.encore('utf-8')
-        salt = bcrypt.gensalt()
+        senha_bytes = senha.encode('utf-8')
 
+        salt = bcrypt.gensalt()
         hash_bytes = bcrypt.hashpw(senha_bytes, salt)
 
         return hash_bytes.decode('utf-8')   
 
-    def verificar_a_senha(self, senha: str, hash_armazenado: str) -> bool:
-        senha_bytes = senha.encore('utf-8')
-        hash_bytes = hash_armazenado('utf-8')
+    def verificar_senha(self, senha: str, hash_senha: str) -> bool:
+        senha_bytes = senha.encode('utf-8')
+        hash_bytes = hash_senha.encode('utf-8')
 
         return bcrypt.checkpw(senha_bytes, hash_bytes)
 
-    def registrar_usuario(self, usuario: str, senha: str:, email: str = "") -> Tuple[bool, str]:
+    def registrar_usuario(self, usuario: str, senha: str, email: str = "") -> Tuple[bool, str]:
+
         # Validações:
-        if not usuario or len(username) < 3:
+        if not usuario or len(usuario) < 3:
             return False, "Nome do usuário deve ter mínimo 3 caracteres"
         if not senha or len(senha) < 6:
             return False, "A senha deve ter no mínimo 6 caracteres"
 
+        conn = None
         try:
-            conn.connect()
+            conn = self.conectar()
             cursor = conn.cursor()
 
             # Verifica se o usuário já existe no banco de dados:
-            cursor.execute('SELECT id FROM WHERE usuario = ?' (usuario,))
+            cursor.execute('SELECT id FROM usuarios WHERE usuario = ?', (usuario,))
             if cursor.fetchone():
-                conn.close
-                return False 
+                return False, "Usuário já existente!" 
             
-            hash_senha = self.gerar_senha()
+            hash_senha = self.gerar_hash(senha)
 
             # Insere o usuário no banco de dados:
             cursor.execute('''
                 INSERT INTO usuarios (usuario, hash_senha, email)
-                VALUE (?, ?, ?)
-                ''', (usuario, senha, email))
+                VALUES (?, ?, ?)
+                ''', (usuario, hash_senha, email))
 
             conn.commit()
-            conn.close()
-
-            print(f"[INFO] {usuário] registrado com sucesso!")
             return True, "Usuario criado com sucesso"
         
         except Exception as e:
             print(f"[ERRO] O usuário não foi registrado: {e}")
+            if conn:
+                conn.rollback()
             return False, "Usuário não registrado"
 
+        finally:
+            if conn:
+                conn.close()
+
     def autenticar_usuario(self, usuario: str, senha: str) -> Tuple[bool, str]:
+        conn = None
         try:
-            conn.connect()
+            conn = self.conectar()
             cursor = conn.cursor()
 
             # Busca o usuário:
             cursor.execute('''
-                SELECT id FROM usuarios WHERE usuario = ?
+                SELECT id, hash_senha FROM usuarios WHERE usuario = ?
                 ''', (usuario,)) 
 
-                resultado = cursor.fetchone()
+            resultado = cursor.fetchone()
 
-                if not resultado:
-                    conn.close()
-                    return False, Nonw
+            if not resultado:
+                return False, "Usuario nao encontrado"
+            
+            user_id, hash_senha = resultado
+
+            if self.verificar_senha(senha, hash_senha):
+
+                # Atualiza o ultimo login.
+                cursor.execute('''
+                    UPDATE usuarios
+                    SET ultimo_login = ?
+                    WHERE id = ?
+                    ''', (datetime.now().isoformat(), user_id))
                 
-                user_id, hash_senha = resultado
+                conn.commit()
+                print(f"O usuário {usuario} está autenticado")
+                return True, user_id
 
-                if not self.verificar_senha(senha, hash_senha):
-                    # Atualiza o ultimo login.
-                    cursor.execute('''
-                        UPDATE usuarios
-                        SET ultimo_login = ?
-                        WHERE id = ?
-                        ''', (datetime.now().isoformat(), user_id))
-                    
-                    conn.commit()
-                    conn.close()
+            else:
+                print("[AVISO] Falha no login do usuário!")
+                return False, None 
 
-                    print(f"{usuario} logado!")
-                    return False, None
+        except Exception as e: 
+            print(f"[ERRO] Erro ao efetuar o login: {e}")
+            if conn:
+                conn.rollback()
+            return False, None
 
-                else:
-                    print("[AVISO] Falha no login do usuário!")
-                    return False, None
-            except Exception as e: 
-                print(f"[ERRO] Erro ao efetuar o login: {e}")
-                return False, None
+        finally:
+            if conn:
+                conn.close()
+
 
     def obter_info(self, user_id: int) -> Optional[dict]:
+        conn = None
         try:
-            conn.connect()
-            cursor = conn.conect()
+            conn = self.conectar()
+            cursor = conn.cursor()
 
             cursor.execute('''
             SELECT id, usuario, email, criado_em, ultimo_login
             FROM usuarios
-            WHERE id ?
+            WHERE id = ?
             ''', (user_id))
 
             resultado = cursor.fetchone()
-            conn.close()
 
             if resultado:
                 return{
@@ -140,7 +160,10 @@ class Database_Auth:
 
             return None
 
-        except Exeception as e:
+        except Exception as e:
             print(f"[ERRO] Ao buscar usuário!")
             return None
 
+        finally:
+            if conn:
+                conn.close()

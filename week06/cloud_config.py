@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typind Dict
+from typing import Dict
 
 class Cloud_Config:
     def __init__(self):
