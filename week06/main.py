@@ -25,11 +25,11 @@ def menu_chat():
     while True:
         print("=" * 50)
         print("==== Menu chat 💬 =====")
-        print("1 - Enviar mensagem")
-        print("2 - Listar mensagens")
-        print("3 - Buscar mensagens pelo usuário")
-        print("4 - Trocar usuário")
-        print("5 - Limpar o chat")
+        print("1 - Informações do usuário")
+        print("2 - Enviar mensagem")
+        print("3 - Histórico")
+        print("4 - Buscar mensagens")
+        print("5 - Trocar usuário")
         print("0 - Sair")
         print("=" * 50)
     
@@ -68,52 +68,52 @@ def main():
                 while chat.auth.esta_logado():
                     opcao_chat = menu_chat()
 
-                if opcao == 1:
-                    print("=== Meu Perfil 👤 ====")
-                    info = chat.auth.get_usuario_atual(self)
-                    if info:
-                        print(f"\n{'=' * 60}")
-                        print(f"ID: {info['id']}")
-                        print(f"Usuário: {info['username']}")
-                        print(f"Email: {info['email'] or 'Não informado'}")
-                        print(f"Conta criada em: {info['criado_em']}")
-                        print(f"Último login: {info['ultimo_login']}")
-                        print(f"{'=' * 60}\n")
+                    if opcao_chat == 1:
+                        print("=" * 20, "Meu Perfil 👤", "=" * 20)
+                        info = chat.auth.exibir_info_usuario()
+                        if info:
+                            print(f"\n{'=' * 50}")
+                            print(f"ID: {info['id']}")
+                            print(f"Usuário: {info['usuario']}")
+                            print(f"Email: {info['email'] or 'Não informado'}")
+                            print(f"Conta criada em: {info['criado_em']}")
+                            print(f"Último login: {info['ultimo_login']}")
+                            print(f"{'=' * 50}\n")
+                        else:
+                            print("[ERRO] Não foi possivel carregar as infos do usuário")
 
+                    elif opcao_chat == 2: 
+                        print("=" * 20, "Enviar Mensagem 📤", "=" * 20)
+                        conteudo = input(f"Digite a sua mensagem, {usuario}: ")
+                        if conteudo.strip():
+                            chat.enviar_mensagem(conteudo)
+                        else:
+                            print("Mensagens não podem ser vazia!")
 
-                elif opcao == 2: 
-                    print("==== Enviar Mensagem 📤 ====")
-                    conteudo = input(f"Digite a sua mensagem, {usuario}: ")
-                    if conteudo.strip():
-                        chat.enviar_mensagem(conteudo)
+                    elif opcao_chat == 3:
+                        print("=" * 20, "Histórico 📋", "=" * 20)
+                        chat.exibir_historico()
+
+                    elif opcao_chat == 4:
+                        print("=" * 20, "Buscar Mensagens 🔍", "=" * 20)
+                        usuario_busca = input("Digite o nome do usuario: ")
+                        chat.buscar_mensagens_usuario(usuario_busca)
+
+                    elif opcao_chat == 5:
+                        print("=" * 20, "Saindo da conta...", "=" * 20)
+                        if  chat.auth.logout():
+                           break 
+
+                    elif opcao_chat == 0:
+                        print("=" * 20, "Fechando o chat... ❌", "=" * 20)
+                        break
+
                     else:
-                        print("Mensagens não podem ser vazia!")
-
-                elif opcao == 3:
-                    print("==== Histórico 📋 ====")
-                    chat.exibir_historico()
-
-                elif opcao == 4:
-                    print("==== Buscar Mensagens 🔍 ====")
-                    usuario_busca = input("Digite o nome do usuario: ")
-                    chat.buscar_mensagens_usuario(usuario_busca)
-
-                elif opcao == 5:
-                    print("==== Sando da conta... ↩️  ====")
-                    novo_usuario = input("Digite o novo usuario: ")
-                    if  chat.fazer_login(novo_usuario):
-                        usuario = novo_usuario
-
-                elif opcao == 0:
-                    print("==== Fechando o chat... ❌ ====")
-                    break
-
-                else:
-                    print("[ERRO!] Opção inválida!")
-                    continue
+                        print("[ERRO!] Opção inválida!")
+                        continue
 
         elif opcao == 2:
-            print("==== Criar Conta 📝 ====")
+            print("=" * 20, "Criar Conta 📝", "=" * 20)
             usuario = input("Defina seu usuario: ").strip()
             senha = input("Define sua senha (min. 6 caracteres): ").strip()
             email = input("Define seu email: ").strip()
@@ -125,8 +125,10 @@ def main():
             cloud.simular_deploy_aws()
 
         elif opcao == 0:
-            print("==== Saindo do app ❌ ====")
+            print("==== Fechando o chat... ❌ ====")
             break
+        else:
+            print("Opção inválida!")
 
 if __name__ == "__main__":
     main()

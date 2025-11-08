@@ -29,7 +29,7 @@ class Chat:
             False caso o contrário.
         """
         # Validações de usuário e conteudo: 
-        if not self.auth_esta_logado:
+        if not self.auth.esta_logado():
             return False
             print("[ERRO!] Voce precsa estar logado!")
 
@@ -39,7 +39,7 @@ class Chat:
 
         usuario = self.auth.get_usuario_atual()
         # Insere a mensagem no banco de dados:
-        sucesso = self.db.inserir_mensagem(self.usuario_atual, conteudo.strip())
+        sucesso = self.db.inserir_mensagem(usuario, conteudo.strip())
         if sucesso:
             print("Mensagem enviada!")
 
@@ -116,6 +116,6 @@ class Chat:
             
         print("=" * 50)
         
-    def limpar_chat(self):
+    def limpar_chat(self): # Desabilitado
         print("Limpando histórico de mensagens")
         self.db.deletar_chat()

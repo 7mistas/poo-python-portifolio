@@ -36,5 +36,5 @@ class Autenticacao:
 
     def exibir_info_usuario(self) -> Optional[dict]:
         if self.id_logado:
-           return self.db.obter_info(self.id_logado)
+           return self.db_auth.obter_info(self.id_logado)
         return None

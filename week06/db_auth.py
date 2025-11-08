@@ -145,7 +145,7 @@ class Database_Auth:
             SELECT id, usuario, email, criado_em, ultimo_login
             FROM usuarios
             WHERE id = ?
-            ''', (user_id))
+            ''', (user_id,))
 
             resultado = cursor.fetchone()
 
