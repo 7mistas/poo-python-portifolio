@@ -30,7 +30,7 @@ class Autenticacao:
 
     def esta_logado(self) -> bool:
         return self.usuario_logado is not None
-
+ 
     def get_usuario_atual(self) -> Optional[str]:
         return self.usuario_logado
 

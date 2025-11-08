@@ -40,6 +40,7 @@ def menu_chat():
 
         except ValueError:
             print("[ERRO!] Somente numeros são válidos!")
+            continue
 
 def main():
     """
