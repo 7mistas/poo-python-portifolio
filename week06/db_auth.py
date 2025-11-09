@@ -1,12 +1,16 @@
 import bcrypt
+import logging
 import sqlite3
 from pathlib import Path
 from typing import Optional, Tuple
 from datetime import datetime
 
+db_auth_log.info("Usuario %s está autenticado", usuario)
+
 class Database_Auth:
     def __init__(self, db_nome: str = "chat.db"):
         self.db_nome = "db_auth.db"
+        db_auth_log.info("Inicializando Database_Auth e criando tabelas...")
         self.criar_tabela_usuarios()
 
     def conectar(self) -> sqlite3.Connection:
@@ -32,6 +36,10 @@ class Database_Auth:
                 )
             ''')
             conn.commit()
+            db_auth_log.debug("Tabela 'usuarios' verificada/criada.")
+        except Exception as e:
+            db_auth_log.error("Falha ao criar 'usuarios': %s", e)
+            
         finally:
             conn.close()
 
@@ -77,10 +85,11 @@ class Database_Auth:
                 ''', (usuario, hash_senha, email))
 
             conn.commit()
-            return True, "Usuario criado com sucesso"
+            return True, "Conta criada com sucesso"
+            db_auth_log.info("Usuario %s registrado com sucesso", usuario)
         
         except Exception as e:
-            print(f"[ERRO] O usuário não foi registrado: {e}")
+            db_auth_log.error("Usuario %s criado com sucesso: %s", usuario, e)
             if conn:
                 conn.rollback()
             return False, "Usuário não registrado"
@@ -118,6 +127,7 @@ class Database_Auth:
                 
                 conn.commit()
                 print(f"O usuário {usuario} está autenticado")
+                db_auth_log.info("Usuario %s está autenticado", usuario)
                 return True, user_id
 
             else:
@@ -125,7 +135,7 @@ class Database_Auth:
                 return False, None 
 
         except Exception as e: 
-            print(f"[ERRO] Erro ao efetuar o login: {e}")
+            db_auth_log.error("Usuario %s está autenticado", usuario)
             if conn:
                 conn.rollback()
             return False, None
@@ -158,10 +168,11 @@ class Database_Auth:
                     'ultimo_login': resultado[4]
                 }
 
+            db_auth_log.info("Id %s encontrado, Dict gerado", user_id)
             return None
 
         except Exception as e:
-            print(f"[ERRO] Ao buscar usuário!")
+            db_auth_log.error("Id %s não encontrado, Dict não criado: %s", user_id, e)
             return None
 
         finally:

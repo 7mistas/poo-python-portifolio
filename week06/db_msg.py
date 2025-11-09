@@ -1,7 +1,10 @@
+import logging
 import sqlite3
 from datetime import datetime
 from typing import List, Tuple
 from pathlib import Path
+
+db_msg_log = logging.getLogger("ChatAWS.Msg") 
 
 class Database:
     """
@@ -13,6 +16,7 @@ class Database:
         Args: db_nome: (str): Nome do banco de dados (chat.db)
         """
         self.db_nome = db_nome
+        db_msg_log.info("Iniciando Database de mensagens e criando tabela...")
         self.criar_tabelas()
     def conectar(self) -> sqlite3.Connection:
         """
@@ -44,7 +48,9 @@ class Database:
                     mensagem TEXT NOT NULL,
                     timestamp TEXT TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
             conn.commit()
+            db_msg_log.info("Tabela 'mensagens' criada com sucesso!")
         except Exception as e:
+            db_msg_log.error("Erro na criação da tabela de mensagem: %s", e)
             if conn:
                 conn.rollback
 
@@ -73,13 +79,14 @@ class Database:
                 INSERT INTO mensagens (usuario, mensagem, timestamp)
                 VALUES(?, ?, ?)''', (usuario, mensagem, datetime.now()))
             conn.commit()
+            db_msg_log.info("Mensagem do usuario inserida com sucesso %s às %s", usuario, datetime.now())
             return True
 
         except Exception as e:
+            db_msg_log.error("Erro ao inserir mensagem na tabela: %s", e)
             if conn:
                 conn.rollback()
 
-            print(f"[ERRO!] Ao inserir a mensagem: {str(e)}") #Essa saida complexa de except.
             return False
 
         finally:
@@ -109,10 +116,11 @@ class Database:
                 ''', (limite,))
 
             mensagens = cursor.fetchall()
+            db_msg_log.info("Até número de %s mensagens foram listadas", limite)
             return mensagens
 
         except Exception as e:
-            print(f"[ERRO!] Erro ao listar as mensagens: {e}")
+            db_msg_log.info("Iniciando Database de mensagens e criando tabelas...")
             return []
 
         finally:
@@ -143,10 +151,11 @@ class Database:
                 ''', (f'%{usuario}%',))
 
             mensagens = cursor.fetchall()
+            db_msg_log.info("A busca pelo %s foi bem sucedida", usuario)
             return mensagens
 
         except Exception as e:
-            print(f"[ERRO!] Erro ao buscar o usuário!: {e}")
+            db_msg_log.error("Falha ao buscar o usuario $s: %s", usuario, e)
             return []
         
         finally:
@@ -171,12 +180,13 @@ class Database:
             cursor.execute('DELETE FROM mensagens WHERE id = ?', (id_mensagem,))
 
             conn.commit()
+            db_msg_log.info("A mensagem do ID: $s foi deleta com sucesso!", id_mensagem)
             return True
 
         except Exception as e:
+            db_msg_log.error("Erro ao deletar mensagem do ID $s: %s", id_mensagem, e)
             if conn:
                 conn.rollback()
-            print(f"[ERRO!] Ao deletar a mensagem: {e}")
             return False
 
         finally:
@@ -199,12 +209,13 @@ class Database:
             cursor.execute('DELETE FROM mensagens')
 
             conn.commit()
+            db_msg_log.info("Todas as mensagens foram deletadas com sucesso!")
             return True
 
         except Exception as e:
+            db_msg_log.error("Erro ao deletar todas as mensagens")
             if conn:
                 conn.rollback()
-            print(f"[ERRO!] Ao deletar todas as mensagens: {e}")  
             return False
 
         finally:

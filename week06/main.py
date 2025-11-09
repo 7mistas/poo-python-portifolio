@@ -1,3 +1,5 @@
+import logging
+from logger import setup_logging()
 from chat import Chat
 from cloud_config import Cloud_Config
 
@@ -46,6 +48,10 @@ def main():
     """
     Executa as opções para o usuario selecionar.
     """
+    setup_logging()
+    app_log = logging.getLogger("ChatAWS")
+    app.info("Aplicaão iniciada e logs configurados.")
+
     chat = Chat()
     cloud = Cloud_Config()
 
