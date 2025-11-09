@@ -1,5 +1,5 @@
 import logging
-from logger import setup_logging()
+from logger import setup_logging
 from chat import Chat
 from cloud_config import Cloud_Config
 
@@ -14,10 +14,12 @@ def menu_login():
     try:
         opcao_str = input("Escolha uma opção: ").strip()
         opcao = int(opcao_str)
+        app_log.info("Opção valida para o menu de login")
         return opcao 
 
     except ValueError:
-        print("[ERRO!] Somente numeros são válidos!")
+        app_log.error("Opção inválida, somente números permitidos!")
+        print("[ERRO!] Somente números são válidos!")
 
 
 def menu_chat():
@@ -38,27 +40,31 @@ def menu_chat():
         try:
             opcao_str = input("Escolha uma opção: ").strip()
             opcao = int(opcao_str)
+            app_log.info("Opção valida para o menu de login")
             return opcao 
 
         except ValueError:
-            print("[ERRO!] Somente numeros são válidos!")
+            app_log.error("Opção inválida, somente números permitidos!")
+            print("[ERRO!] Somente números são válidos!")
             continue
 
 def main():
     """
     Executa as opções para o usuario selecionar.
     """
+    # Inicia o modulo de logs do ChatAWS.
     setup_logging()
     app_log = logging.getLogger("ChatAWS")
-    app.info("Aplicaão iniciada e logs configurados.")
+    app_log.info("Aplicação iniciada e logs configurados.")
 
     chat = Chat()
     cloud = Cloud_Config()
 
     if cloud:
         print("Conexão bem sucedida com o servidor na nuvem.")
+        app_log.info("Conexão bem sucedida com o servidor na nuvem.")
     else:
-        print("[ERRO] Conexão com o servidor na nuvem não estabelecida.")
+        app_log.warning("[ERRO] Conexão com o servidor na nuvem não estabelecida.")
 
     while True:
         opcao = menu_login()

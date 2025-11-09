@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 from datetime import datetime
 
-db_auth_log.info("Usuario %s está autenticado", usuario)
+db_auth_log = logging.getLogger("ChatAWS.Auth")
 
 class Database_Auth:
     def __init__(self, db_nome: str = "chat.db"):

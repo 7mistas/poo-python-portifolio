@@ -1,7 +1,7 @@
 import logging
 import os
 
-def setup_logger():
+def setup_logging():
     """ 
     Configura o sistema de logging para o console (INFO) e o arquivo (DEBUG).
     O nome 'ChatAWS' permite que tdos os arquivos usem o mesmo sistema. 
@@ -12,18 +12,18 @@ def setup_logger():
     logger.setLevel(logging.DEBUG)
 
     # Havendo handlers, não adiciona novamente (duplicação).
-    if logger.handlers:
+    if not logger.handlers:
         return
 
     # Formato definido.
-    formatter = logging.formatter("[%(asctime)s] %(name)s: %(levelname)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+    formatter = logging.Formatter("[%(asctime)s] %(name)s: %(levelname)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
-    # Handler com infos parciais para o console. (INFO: Usuário visualiza)
+    # Handler com infos parciais para o console. (INFO: O usuário visualiza)
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(formatter)
 
-    # Handler com info total para o arquivo. (DEBUG: tudo dentro do arquivo)
+    # Handler com info total para o arquivo. (DEBUG: Tudo dentro do arquivo)
     file_handler = logging.StreamHandler()
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
