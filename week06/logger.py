@@ -12,10 +12,10 @@ def setup_logging():
     logger.setLevel(logging.DEBUG)
 
     # Havendo handlers, não adiciona novamente (duplicação).
-    if not logger.handlers:
+    if not logger.handlers: # <<< Atenção: tecnicamente errado, pois trava só o código.
         return
 
-    # Formato definido.
+    # Formato definido que será exibido.
     formatter = logging.Formatter("[%(asctime)s] %(name)s: %(levelname)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 
     # Handler com infos parciais para o console. (INFO: O usuário visualiza)
@@ -24,8 +24,8 @@ def setup_logging():
     console_handler.setFormatter(formatter)
 
     # Handler com info total para o arquivo. (DEBUG: Tudo dentro do arquivo)
-    file_handler = logging.StreamHandler()
-    file_handler.setLevel(logging.INFO)
+    file_handler = logging.FileHandler("chat_app.log", mode='a', encoding='utf-8')
+    file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
     
     # Adiciona os handlers ao logger
