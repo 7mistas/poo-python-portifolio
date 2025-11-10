@@ -3,6 +3,7 @@ import sqlite3
 from datetime import datetime
 from typing import List, Tuple
 from pathlib import Path
+from exceptions import AuthError, DatabaseError
 
 log = logging.getLogger(__name__) 
 
@@ -80,15 +81,12 @@ class Database:
                 VALUES(?, ?, ?)''', (usuario, mensagem, datetime.now()))
             conn.commit()
             log.info("Mensagem do usuario inserida com sucesso %s às %s", usuario, datetime.now())
-            return True
 
-        except Exception as e:
+        except sqlite.Error as e:
             log.error("Erro ao inserir mensagem na tabela: %s", e)
             if conn:
                 conn.rollback()
-
-            return False
-
+            raise DatabaseError("Erro ao salvar mensagem no banco de dados: %s", e)
         finally:
             if conn:
                 conn.close()

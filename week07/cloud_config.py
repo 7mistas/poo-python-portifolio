@@ -49,6 +49,7 @@ class Cloud_Config:
     def get_storage_config(self) -> Dict:
         return self.config['storage']
 
+    # Menu da simulação de deploy.
     def simular_deploy_aws(self):
         print("\n" + "=" * 71)
         print(" " * 20 + "🚀 SIMULAÇÃO DE DEPLOY AWS")
@@ -63,7 +64,7 @@ class Cloud_Config:
         print("      ✓ Arquivos enviados")
         
         print("\n[3/5] 🖥️  Deploy no EC2...")
-        print("      ✓ Instância t2.micro criada")
+        print("      ✓ Instância t3.micro criada")
         print("      ✓ Python 3.11 instalado")
         print("      ✓ Aplicação iniciada")
         

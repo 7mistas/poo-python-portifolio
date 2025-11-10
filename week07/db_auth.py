@@ -4,6 +4,7 @@ import sqlite3
 from pathlib import Path
 from typing import Optional, Tuple
 from datetime import datetime
+from exceptions import AuthError, DatabaseError
 
 log = logging.getLogger(__name__)
 
@@ -37,8 +38,9 @@ class Database_Auth:
             ''')
             conn.commit()
             log.debug("Tabela 'usuarios' verificada/criada.")
-        except Exception as e:
-            log.error("Falha ao criar 'usuarios': %s", e)
+        except sqlite3.Erros as e:
+            log.error("Falha ao criar tabela no SQLite 'usuarios': %s", e)
+            raise DatabaseError(f"Erro no banco de dados: %s", e)
             
         finally:
             conn.close()
@@ -58,13 +60,13 @@ class Database_Auth:
 
         return bcrypt.checkpw(senha_bytes, hash_bytes)
 
-    def registrar_usuario(self, usuario: str, senha: str, email: str = "") -> Tuple[bool, str]:
+    def registrar_usuario(self, usuario: str, senha: str, email: str = ""):
 
         # Validações:
         if not usuario or len(usuario) < 3:
-            return False, "Nome do usuário deve ter mínimo 3 caracteres"
+            raise AuthError("Nome do usuário deve ter mínimo 3 caracteres")
         if not senha or len(senha) < 6:
-            return False, "A senha deve ter no mínimo 6 caracteres"
+            raise AuthError("A senha deve ter no mínimo 6 caracteres")
 
         conn = None
         try:
@@ -74,7 +76,7 @@ class Database_Auth:
             # Verifica se o usuário já existe no banco de dados:
             cursor.execute('SELECT id FROM usuarios WHERE usuario = ?', (usuario,))
             if cursor.fetchone():
-                return False, "Usuário já existente!" 
+                raise AuthError("Usuário já existente!" )
             
             hash_senha = self.gerar_hash(senha)
 
@@ -85,20 +87,21 @@ class Database_Auth:
                 ''', (usuario, hash_senha, email))
 
             conn.commit()
-            return True, "Conta criada com sucesso"
             log.info("Usuario %s registrado com sucesso", usuario)
+            return True
         
-        except Exception as e:
+        except sqlite3.Error as e:
             log.error("Usuario %s criado com sucesso: %s", usuario, e)
             if conn:
+                log.warning("Desfazendo o registro")
                 conn.rollback()
-            return False, "Usuário não registrado"
+            raise DatabaseError("Usuário não registrado")
 
         finally:
             if conn:
                 conn.close()
 
-    def autenticar_usuario(self, usuario: str, senha: str) -> Tuple[bool, str]:
+    def autenticar_usuario(self, usuario: str, senha: str) -> int:
         conn = None
         try:
             conn = self.conectar()
@@ -112,11 +115,11 @@ class Database_Auth:
             resultado = cursor.fetchone()
 
             if not resultado:
-                return False, "Usuario nao encontrado"
+                raise DatabaseError("Usuario nao encontrado")
             
             user_id, hash_senha = resultado
 
-            if self.verificar_senha(senha, hash_senha):
+            if self.verificar_senha(senha, hash_senha): 
 
                 # Atualiza o ultimo login.
                 cursor.execute('''
@@ -126,19 +129,19 @@ class Database_Auth:
                     ''', (datetime.now().isoformat(), user_id))
                 
                 conn.commit()
-                print(f"O usuário {usuario} está autenticado")
                 log.info("Usuario %s está autenticado", usuario)
-                return True, user_id
+                return user_id
 
             else:
-                print("[AVISO] Falha no login do usuário!")
-                return False, None 
+                log.warning("Falha no login do usuário!")
+                return none 
 
-        except Exception as e: 
-            log.error("Usuario %s está autenticado", usuario)
+        except sqlite.Error as e: 
+            log.error("Falha no login do usuário %s: %s", usuario, e)
             if conn:
+                log.warning("Retornando o login.")
                 conn.rollback()
-            return False, None
+            return None
 
         finally:
             if conn:
@@ -171,7 +174,7 @@ class Database_Auth:
             log.info("Id %s encontrado, Dict gerado", user_id)
             return None
 
-        except Exception as e:
+        except sqlite3.Error as e:
             log.error("Id %s não encontrado, Dict não criado: %s", user_id, e)
             return None
 
