@@ -85,9 +85,9 @@ class Chat:
             print("[INFO] Nenhuma mensagem no histórico.")
             return
 
-        print("=" * 50)
+        print("=" * 71)
         print(f"As ultimas {len(mensagens)} mensagens.")
-        print("=" * 50)
+        print("=" * 71)
 
         for mensagem in mensagens:
             print(mensagem.formatar())
@@ -105,16 +105,16 @@ class Chat:
             print("[ERRO!] Mesagens não encontradas!")
             return
 
-        print("=" * 50)
+        print("=" * 71)
         print(f"Mensagens do {usuario}: ")
-        print("=" * 50)
+        print("=" * 71)
 
         for id_msg, usuario, mensagem, data_str in dados:
             timestamp = datetime.fromisoformat(data_str)
             msg = Mensagem(usuario, mensagem, id_msg, timestamp)
             print(msg.formatar())
             
-        print("=" * 50)
+        print("=" * 71)
         
     def limpar_chat(self): # Desabilitado
         print("Limpando histórico de mensagens")

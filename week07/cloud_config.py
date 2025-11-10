@@ -50,9 +50,9 @@ class Cloud_Config:
         return self.config['storage']
 
     def simular_deploy_aws(self):
-        print("\n" + "=" * 50)
-        print(" " * 15 + "🚀 SIMULAÇÃO DE DEPLOY AWS")
-        print("=" * 50)
+        print("\n" + "=" * 71)
+        print(" " * 20 + "🚀 SIMULAÇÃO DE DEPLOY AWS")
+        print("=" * 71)
         
         print("\n[1/5] 📦 Empacotando aplicação...")
         print("      ✓ Código compactado")
@@ -76,8 +76,8 @@ class Cloud_Config:
         print("      ✓ Domínio: chat.n/a.com")
         print("      ✓ Load Balancer ativo")
         
-        print("\n" + "=" * 50)
+        print("\n" + "=" * 71)
         print("✅ Deploy concluído com sucesso!")
         print("🌍 Aplicação disponível em: https://chat.n/a.com")
-        print("=" * 50 + "\n")
+        print("=" * 71 + "\n")
 
