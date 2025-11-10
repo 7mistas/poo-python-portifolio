@@ -13,3 +13,7 @@ chat_app.log
 
 __pycache__/
 *.pyc
+
+*.tmp
+*.bak
+*.swp
