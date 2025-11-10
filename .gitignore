@@ -1,0 +1,18 @@
+# Arquivos de cache e temporários
+__pycache__/
+*.pyc
+*.tmp
+*.bak
+*.swp
+
+# Arquivos de Log e DB
+*.log
+app.log
+chat_app.log
+*.db
+chat.db
+db_auth.db
+
+# Ambiente Virtual
+venv/
+.venv/
