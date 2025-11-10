@@ -34,6 +34,7 @@ def menu_login():
     try:
         opcao_str = input("Escolha uma opção: ").strip()
         opcao = int(opcao_str)
+        console.print("=" * 71, style="grey70")
         log.info("Opção valida para o menu de login")
         return opcao
     
