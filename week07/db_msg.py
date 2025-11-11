@@ -50,7 +50,7 @@ class Database:
                     timestamp TEXT TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
             conn.commit()
             log.info("Tabela 'mensagens' criada com sucesso!")
-        except Exception as e:
+        except sqlite3.Error as e:
             log.error("Erro na criação da tabela de mensagem: %s", e)
             if conn:
                 conn.rollback
@@ -82,7 +82,7 @@ class Database:
             conn.commit()
             log.info("Mensagem do usuario inserida com sucesso %s às %s", usuario, datetime.now())
 
-        except sqlite.Error as e:
+        except sqlite3.Error as e:
             log.error("Erro ao inserir mensagem na tabela: %s", e)
             if conn:
                 conn.rollback()
@@ -117,7 +117,7 @@ class Database:
             log.info("Até número de %s mensagens foram listadas", limite)
             return mensagens
 
-        except Exception as e:
+        except sqlite3.Error as e:
             log.error("Iniciando Database de mensagens e criando tabelas...")
             return []
 
@@ -152,7 +152,7 @@ class Database:
             log.info("A busca pelo %s foi bem sucedida", usuario)
             return mensagens
 
-        except Exception as e:
+        except sqlite3.Error as e:
             log.error("Falha ao buscar o usuario $s: %s", usuario, e)
             return []
         
@@ -181,7 +181,7 @@ class Database:
             log.info("A mensagem do ID: $s foi deleta com sucesso!", id_mensagem)
             return True
 
-        except Exception as e:
+        except Sqlite3.Error as e:
             log.error("Erro ao deletar mensagem do ID $s: %s", id_mensagem, e)
             if conn:
                 conn.rollback()
@@ -210,7 +210,7 @@ class Database:
             log.info("Todas as mensagens foram deletadas com sucesso!")
             return True
 
-        except Exception as e:
+        except sqlite3.Error as e:
             log.error("Erro ao deletar todas as mensagens")
             if conn:
                 conn.rollback()

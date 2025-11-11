@@ -134,9 +134,9 @@ class Database_Auth:
 
             else:
                 log.warning("Falha no login do usuário!")
-                return none 
+                return None 
 
-        except sqlite.Error as e: 
+        except sqlite3.Error as e: 
             log.error("Falha no login do usuário %s: %s", usuario, e)
             if conn:
                 log.warning("Retornando o login.")

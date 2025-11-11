@@ -1,8 +1,11 @@
+import logging
 from datetime import datetime
 from db_msg import Database
 from message import Mensagem
 from auth import Autenticacao
 from typing import List
+
+log = logging.getLogger(__name__)
 
 class Chat:
     """
@@ -14,8 +17,6 @@ class Chat:
         """
         self.db = Database("chat.db")
         self.auth = Autenticacao()
-        #self.usuario_atual = None
-
 
     def enviar_mensagem(self, conteudo: str) -> bool:
         """
@@ -30,24 +31,19 @@ class Chat:
         """
         # Validações de usuário e conteudo: 
         if not self.auth.esta_logado():
-            return False
-            print("[ERRO!] Voce precsa estar logado!")
+            log.warning("Tentativa de envio de mensagem sem login.")
+            raise AuthError("[ERRO!] Voce precsa estar logado!")
 
         if not conteudo or conteudo.strip() == "":
-            print("[ERRO!] Mensagem vazia!")
-            return False
+            log.warning("Tentativa de envio de mensagem vazia.")
+            raise ChatError("[ERRO!] A mensagem não pode ser vazia!")
 
-        usuario = self.auth.get_usuario_atual()
-        # Insere a mensagem no banco de dados:
-        sucesso = self.db.inserir_mensagem(usuario, conteudo.strip())
-        if sucesso:
-            print("Mensagem enviada!")
-
-        else:
-            print("Mensagem não enviada!")
-
-        return sucesso
-
+        try:
+            # Insere a mensagem no banco de dados:
+            self.db.inserir_mensagem(self.auth.usuario_logado, conteudo)
+        except DatabaseError as e:
+            log.error("Erro ao inserir mensagem no banco de dados: %s", e)
+            raise DatabaseError("Falha ao salvar a mensagem: %s",e)
     
     def carregar_mensagens(self, limite: int = 50) -> List[Mensagem]:
         """
@@ -71,9 +67,9 @@ class Chat:
 
         return mensagens
 
-    def exibir_historico(self, limite: int = 20) -> None:
+    def exibir_historico(self, limite: int = 20) -> List[Mensagem]:
         """
-        Carrega e exibe as mensagens.
+        Carrega as mensagens para exibição do histórico.
 
         Args:
             limite (int): Número de mensagens para serem exibidas.
@@ -82,15 +78,11 @@ class Chat:
         mensagens = self.carregar_mensagens(limite)
 
         if not mensagens:
-            print("[INFO] Nenhuma mensagem no histórico.")
-            return
+            log.info("Nenhuma mensagem no histórico.")
+            return []
 
-        print("=" * 71)
-        print(f"As ultimas {len(mensagens)} mensagens.")
-        print("=" * 71)
+        return mensagens
 
-        for mensagem in mensagens:
-            print(mensagem.formatar())
     
     def buscar_mensagens_usuario(self, usuario: str) -> None:
         """Busca mensagens de um usuario expecífico.
@@ -102,20 +94,20 @@ class Chat:
         dados = self.db.buscar_usuario(usuario)
 
         if not dados:
-            print("[ERRO!] Mesagens não encontradas!")
+            log.info("Mesagens não encontradas!")
             return
 
-        print("=" * 71)
-        print(f"Mensagens do {usuario}: ")
-        print("=" * 71)
+        console.print("=" * 71)
+        console.print(f"Mensagens do {usuario}: ")
+        console.print("=" * 71)
 
         for id_msg, usuario, mensagem, data_str in dados:
             timestamp = datetime.fromisoformat(data_str)
             msg = Mensagem(usuario, mensagem, id_msg, timestamp)
-            print(msg.formatar())
+            console.print(msg.formatar())
             
-        print("=" * 71)
+        console.print("=" * 71)
         
     def limpar_chat(self): # Desabilitado
-        print("Limpando histórico de mensagens")
+        console.print("Limpando histórico de mensagens")
         self.db.deletar_chat()

@@ -1,6 +1,9 @@
+import logging
 from db_auth import Database_Auth
 from typing import Optional, Tuple
 from exceptions import AuthError, DatabaseError
+
+log = logging.getLogger(__name__)
 
 class Autenticacao:
     def __init__(self):
@@ -12,7 +15,8 @@ class Autenticacao:
         self.db_auth.registrar_usuario(usuario, senha, email)
 
     def login(self, usuario: str, senha: str) -> Tuple[bool, str]:
-        autenticado, user_id = self.db_auth.autenticar_usuario(usuario, senha)
+        user_id = self.db_auth.autenticar_usuario(usuario, senha)
+        log.debug("Tenando login para o Usuário: %s ID: %s", usuario, user_id)
         
         self.id_logado = user_id
         self.usuario_logado = usuario

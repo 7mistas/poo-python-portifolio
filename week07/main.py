@@ -1,6 +1,7 @@
 import os
 import logging
 import getpass
+import traceback
 import questionary
 from chat import Chat
 from logger import setup_logging
@@ -84,7 +85,7 @@ def menu_chat():
 
         except ValueError:
             log.error("Opção inválida, somente números permitidos!")
-            print("[ERRO!] Somente números são válidos!")
+            console.print("[ERRO!] Somente números são válidos!")
             continue
 
 def main():
@@ -109,7 +110,7 @@ def main():
 
         if opcao == 1:
             console.print("=" * 71, style="grey70")
-            console.print(" " * 20, "Faça o login 🔑")
+            console.print(" " * 20, "Digite seus dados 🔑")
             console.print("=" * 71, style="grey70")
             usuario = input("Usuário: ").strip()
             senha = getpass.getpass("Senha: ").strip()
@@ -151,7 +152,15 @@ def main():
                         console.print("=" * 71, style="grey70")
                         console.print(" " * 20, "Histórico 📋")
                         console.print("=" * 71, style="grey70")
-                        chat.exibir_historico()
+                        lista_mensagens = chat.carregar_mensagens(limite=20)
+                        if not lista_mensagens:
+                            console.print("Nenhuma mensagem no histórico.")
+                        else:
+                            console.print(f"As ultimas {len(lista_mensagens)} do histórico.")
+                            for msg in lista_mensagens:
+                                console.print(msg.formatar())
+
+                        console.print("=" * 71, style="grey70")
 
                     elif opcao_chat == 4:
                         console.print("=" * 71, style="grey70")
@@ -178,13 +187,17 @@ def main():
                         log.info("Opção inválida digitada pelo usuário!")
                         console.print("Opção inválida!")
                         continue
+
             except (AuthError, DatabaseError) as e:
-                log.warning("Falha ao autenticar o usuario: %s", e)
-                console.print("Erro no login do usuário")
+                log.warning("Falha no login: %s", e)
+                console.print("[Erro] Na tentativa de login do usuário")
+                traceback.print_exc()
+                
 
             except Exception as e:
-                log.critical("Falha na autenticação do usuario: %s", e)
-                console.print("Erro Fatal")
+                log.critical("Falha critica no chat após login: %s", e)
+                console.print("[Erro]Falha no sistema após login: %s", e)
+                traceback.print_exc()
 
         elif opcao == 2:
             console.print("=" * 71, style="grey70")
@@ -200,11 +213,13 @@ def main():
 
             except (AuthError, DatabaseError) as e:
                 log.warning("Falha ao criar o usuario: %s", e)
-                console.print("[ERRO]: {e}")
+                console.print("[Erro] Ao criar conta do usuário", e)
+                traceback.print_exc()
 
             except Exception as e:
-                log.critical("Falha ao criar o usuario: %s", e)
-                console.print("[ERRO]: {e}")
+                log.critical("Falha critica na criação do usuario: %s", e)
+                console.print("[ERRO]: Falha na criação da conta: %s", e)
+                traceback.print_exc()
 
         elif opcao == 3: 
             cloud.simular_deploy_aws()
