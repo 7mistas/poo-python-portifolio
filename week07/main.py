@@ -25,9 +25,9 @@ def menu_login():
     """
     Exibe o banner "Chat☁️ AWS" em ASCII.
     """
-    ascii_art = f.renderText('{ChatAWS}')
+    ascii_art = f.renderText('<ChatAWS>')
 
-    banner = Text(ascii_art)
+    banner = Text(ascii_art, style="bold cyan")
     console.print(banner)
 
     opcoes_menu = [
@@ -41,7 +41,7 @@ def menu_login():
     try:
         opcao_select = questionary.select(
                 "Escolha uma opção:",
-                choices =opcoes_menu,
+                choices = opcoes_menu,
                 use_shortcuts=True
                 ).ask()
 
@@ -60,33 +60,45 @@ def menu_login():
         log.error("Opção inválida, somente números permitidos!")
         console.print("[ERRO!] Somente números são válidos!")
 
-
-def menu_chat():
+def menu_chat(usuario_logado: str):
     """
     Exibe o menu com opções para o usuario.
     """
-    while True:
-        console.print("=" * 71, style='grey70')
-        console.print(" " * 20, "Menu chat 💬")
-        console.print("=" * 71, style='grey70')
-        console.print("1 - Informações do usuário")
-        console.print("2 - Enviar mensagem")
-        console.print("3 - Histórico")
-        console.print("4 - Buscar mensagens")
-        console.print("5 - Trocar usuário")
-        console.print("0 - Sair")
-        console.print("=" * 71, style="grey70")
     
-        try:
-            opcao_str = input("Escolha uma opção: ").strip()
-            opcao = int(opcao_str)
-            log.info("Opção valida para o menu de login")
-            return opcao 
+    opcoes_menu = [
+            questionary.Choice(
+                title=f" >>> Logado como: [{usuario_logado}] <<<",
+                disabled=True),
+            questionary.Choice(title= "Informações do usuário", value=1),
+            questionary.Choice(title= "Enviar mensagem", value=2),
+            questionary.Choice(title= "Histórico", value=3),
+            questionary.Choice(title= "Buscar Mensagem", value=4),
+            questionary.Choice(title= "Trocar usuário", value=5),
+            questionary.Separator(),
+            questionary.Choice(title= "Retornar ao login", value=0),
+    ]
+    
+    try:
+        opcao_select = questionary.select(
+                "Escolha uma opção:",
+                choices =opcoes_menu,
+                use_shortcuts=True
+                ).ask()
 
-        except ValueError:
-            log.error("Opção inválida, somente números permitidos!")
-            console.print("[ERRO!] Somente números são válidos!")
-            continue
+        if opcao_select is None:
+            log.info("Seleção cancelada pelo usuário")
+            return -1
+
+        log.info("Opção selecionada para o menu de chat")
+        return opcao_select
+
+    except Exception as e:
+        log.error("Erro inesperado do menu %s", {e})
+        return -1
+
+    except ValueError:
+        log.error("Opção inválida, somente números permitidos!")
+        console.print("[ERRO!] Somente números são válidos!")
 
 def main():
     """
@@ -112,14 +124,14 @@ def main():
             console.print("=" * 71, style="grey70")
             console.print(" " * 20, "Digite seus dados 🔑")
             console.print("=" * 71, style="grey70")
-            usuario = input("Usuário: ").strip()
+            usuario = input("Uuário: ").strip()
             senha = getpass.getpass("Senha: ").strip()
             try:
                 chat.auth.login(usuario, senha)
                 log.info("Senha autorizada")
 
                 while chat.auth.esta_logado():
-                    opcao_chat = menu_chat()
+                    opcao_chat = menu_chat(chat.auth.usuario_logado)
 
                     if opcao_chat == 1:
                         console.print("=" * 71, style="grey70")
@@ -156,7 +168,7 @@ def main():
                         if not lista_mensagens:
                             console.print("Nenhuma mensagem no histórico.")
                         else:
-                            console.print(f"As ultimas {len(lista_mensagens)} do histórico.")
+                            console.print(f"As ultimas {len(lista_mensagens)} mensagem(ns) do histórico.")
                             for msg in lista_mensagens:
                                 console.print(msg.formatar())
 

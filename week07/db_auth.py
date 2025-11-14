@@ -102,82 +102,67 @@ class Database_Auth:
                 conn.close()
 
     def autenticar_usuario(self, usuario: str, senha: str) -> int:
-        conn = None
         try:
-            conn = self.conectar()
-            cursor = conn.cursor()
+            with self.conectar() as conn:
+                cursor = conn.cursor()
 
-            # Busca o usuário:
-            cursor.execute('''
-                SELECT id, hash_senha FROM usuarios WHERE usuario = ?
-                ''', (usuario,)) 
-
-            resultado = cursor.fetchone()
-
-            if not resultado:
-                raise DatabaseError("Usuario nao encontrado")
-            
-            user_id, hash_senha = resultado
-
-            if self.verificar_senha(senha, hash_senha): 
-
-                # Atualiza o ultimo login.
+                # Busca o usuário:
                 cursor.execute('''
-                    UPDATE usuarios
-                    SET ultimo_login = ?
-                    WHERE id = ?
-                    ''', (datetime.now().isoformat(), user_id))
+                    SELECT id, hash_senha FROM usuarios WHERE usuario = ?
+                    ''', (usuario,)) 
+
+                resultado = cursor.fetchone()
+
+                if not resultado:
+                    log.warning("Falha de login: O usuário %s não foi encontrado: ", usuario)
+                    raise AuthError("Usuario nao encontrado")
                 
-                conn.commit()
-                log.info("Usuario %s está autenticado", usuario)
-                return user_id
+                user_id, hash_senha = resultado
 
-            else:
-                log.warning("Falha no login do usuário!")
-                return None 
+                if self.verificar_senha(senha, hash_senha): 
 
-        except sqlite3.Error as e: 
-            log.error("Falha no login do usuário %s: %s", usuario, e)
-            if conn:
-                log.warning("Retornando o login.")
-                conn.rollback()
-            return None
+                    # Atualiza o ultimo login.
+                    cursor.execute('''
+                        UPDATE usuarios
+                        SET ultimo_login = CURRENT_TIMESTAMP
+                        WHERE id = ?
+                        ''', (user_id,))
+                    
+                    log.info("Usuario %s está autenticado", usuario)
+                    return user_id
 
-        finally:
-            if conn:
-                conn.close()
+                else:
+                    log.warning("Falha no login do usuário!")
+                    raise AuthError("") 
 
+            except sqlite3.Error as e: 
+                log.error("[Erro] Falha no SQLite ao autenticar o usuário %s: %s", usuario, e)
+                raise DatabaseError(f"Retornando o login.", )
 
     def obter_info(self, user_id: int) -> Optional[dict]:
-        conn = None
         try:
-            conn = self.conectar()
-            cursor = conn.cursor()
+            with self.conectar() as conn:
+                cursor = conn.cursor()
 
-            cursor.execute('''
-            SELECT id, usuario, email, criado_em, ultimo_login
-            FROM usuarios
-            WHERE id = ?
-            ''', (user_id,))
+                cursor.execute('''
+                SELECT id, usuario, email, criado_em, ultimo_login
+                FROM usuarios
+                WHERE id = ?
+                ''', (user_id,))
 
-            resultado = cursor.fetchone()
+                resultado = cursor.fetchone()
 
-            if resultado:
-                return{
-                    'id': resultado[0],
-                    'usuario': resultado[1],
-                    'email': resultado[2],
-                    'criado_em': resultado[3],
-                    'ultimo_login': resultado[4]
-                }
+                if resultado:
+                    return{
+                        'id': resultado[0],
+                        'usuario': resultado[1],
+                        'email': resultado[2],
+                        'criado_em': resultado[3],
+                        'ultimo_login': resultado[4]
+                    }
 
-            log.info("Id %s encontrado, Dict gerado", user_id)
-            return None
+                log.info("Id %s encontrado, Dict gerado", user_id)
+                return None
 
-        except sqlite3.Error as e:
-            log.error("Id %s não encontrado, Dict não criado: %s", user_id, e)
-            return None
-
-        finally:
-            if conn:
-                conn.close()
+            except sqlite3.Error as e:
+                log.error("Id %s não encontrado, Dict não criado: %s", user_id, e)

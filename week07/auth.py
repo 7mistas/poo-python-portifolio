@@ -6,7 +6,7 @@ from exceptions import AuthError, DatabaseError
 log = logging.getLogger(__name__)
 
 class Autenticacao:
-    def __init__(self):
+    def __init__(self, db= None):
         self.db_auth = Database_Auth()
         self.usuario_logado: Optional[str] = None
         self.id_logado: Optional[int] = None
