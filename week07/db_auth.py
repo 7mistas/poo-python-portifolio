@@ -21,30 +21,25 @@ class Database_Auth:
         return sqlite3.connect(caminho_completo)
 
     def criar_tabela_usuarios(self):
-        conn = None
         try:
-            conn = self.conectar()
-            cursor = conn.cursor()
+            with self.conectar() as conn:
+                cursor = conn.cursor()
 
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS usuarios (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    usuario TEXT UNIQUE NOT NULL,
-                    hash_senha TEXT UNIQUE NOT NULL,
-                    email TEXT UNIQUE NOT NULL,
-                    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    ultimo_login TIMESTAMP
-                )
-            ''')
-            conn.commit()
-            log.debug("Tabela 'usuarios' verificada/criada.")
-        except sqlite3.Erros as e:
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS usuarios (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        usuario TEXT UNIQUE NOT NULL,
+                        hash_senha TEXT UNIQUE NOT NULL,
+                        email TEXT UNIQUE NOT NULL,
+                        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        ultimo_login TIMESTAMP
+                    )
+                ''')
+                log.debug("Tabela 'usuarios' verificada/criada.")
+
+        except sqlite3.Error as e:
             log.error("Falha ao criar tabela no SQLite 'usuarios': %s", e)
             raise DatabaseError(f"Erro no banco de dados: %s", e)
-            
-        finally:
-            conn.close()
-
 
     def gerar_hash(self, senha: str) -> str:
         senha_bytes = senha.encode('utf-8')
@@ -68,38 +63,30 @@ class Database_Auth:
         if not senha or len(senha) < 6:
             raise AuthError("A senha deve ter no mínimo 6 caracteres")
 
-        conn = None
         try:
-            conn = self.conectar()
-            cursor = conn.cursor()
+            with self.conectar() as conn:
+                cursor = conn.cursor()
 
-            # Verifica se o usuário já existe no banco de dados:
-            cursor.execute('SELECT id FROM usuarios WHERE usuario = ?', (usuario,))
-            if cursor.fetchone():
-                raise AuthError("Usuário já existente!" )
+                # Verifica se o usuário já existe no banco de dados:
+                cursor.execute('SELECT id FROM usuarios WHERE usuario = ?', (usuario,))
+                if cursor.fetchone():
+                    raise AuthError("Usuário já existente!" )
+                
+                hash_senha = self.gerar_hash(senha)
+
+                # Insere o usuário no banco de dados:
+                cursor.execute('''
+                    INSERT INTO usuarios (usuario, hash_senha, email)
+                    VALUES (?, ?, ?)
+                    ''', (usuario, hash_senha, email))
+
+                log.info("Usuario %s registrado com sucesso", usuario)
+                return True
             
-            hash_senha = self.gerar_hash(senha)
-
-            # Insere o usuário no banco de dados:
-            cursor.execute('''
-                INSERT INTO usuarios (usuario, hash_senha, email)
-                VALUES (?, ?, ?)
-                ''', (usuario, hash_senha, email))
-
-            conn.commit()
-            log.info("Usuario %s registrado com sucesso", usuario)
-            return True
-        
         except sqlite3.Error as e:
             log.error("Usuario %s criado com sucesso: %s", usuario, e)
-            if conn:
-                log.warning("Desfazendo o registro")
-                conn.rollback()
+            log.warning("Desfazendo o registro")
             raise DatabaseError("Usuário não registrado")
-
-        finally:
-            if conn:
-                conn.close()
 
     def autenticar_usuario(self, usuario: str, senha: str) -> int:
         try:
@@ -132,12 +119,12 @@ class Database_Auth:
                     return user_id
 
                 else:
-                    log.warning("Falha no login do usuário!")
-                    raise AuthError("") 
+                    log.warning("Falha na autenticação do usuário!")
+                    raise AuthError("[Erro] Na verificação do usuário no banco de dados") 
 
-            except sqlite3.Error as e: 
-                log.error("[Erro] Falha no SQLite ao autenticar o usuário %s: %s", usuario, e)
-                raise DatabaseError(f"Retornando o login.", )
+        except sqlite3.Error as e: 
+            log.error("[Erro] Falha no SQLite ao autenticar o usuário %s: %s", usuario, e)
+            raise DatabaseError(f"Retornando o login.", )
 
     def obter_info(self, user_id: int) -> Optional[dict]:
         try:
@@ -164,5 +151,5 @@ class Database_Auth:
                 log.info("Id %s encontrado, Dict gerado", user_id)
                 return None
 
-            except sqlite3.Error as e:
-                log.error("Id %s não encontrado, Dict não criado: %s", user_id, e)
+        except sqlite3.Error as e:
+            log.error("Id %s não encontrado, Dict não criado: %s", user_id, e)

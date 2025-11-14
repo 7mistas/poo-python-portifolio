@@ -3,7 +3,7 @@ from datetime import datetime
 from db_msg import Database
 from message import Mensagem
 from auth import Autenticacao
-from typing import List
+from typing import List, Tuple
 
 log = logging.getLogger(__name__)
 
@@ -74,9 +74,7 @@ class Chat:
         Args:
             limite (int): Número de mensagens para serem exibidas.
         """
-
         mensagens = self.carregar_mensagens(limite)
-
         if not mensagens:
             log.info("Nenhuma mensagem no histórico.")
             return []
@@ -84,30 +82,20 @@ class Chat:
         return mensagens
 
     
-    def buscar_mensagens_usuario(self, usuario: str) -> None:
+    def buscar_mensagens_usuario(self, usuario: str) -> List[Mensagem]:
         """Busca mensagens de um usuario expecífico.
 
         Args:
             usuario (str): O nome do usuario buscado.
-        """
-            
-        dados = self.db.buscar_usuario(usuario)
 
+        Returns:
+            dados(List): retorna uam lista com os dados buscados. 
+        """
+        dados = self.db.pegar_mensagem_usuario(usuario)
         if not dados:
             log.info("Mesagens não encontradas!")
-            return
-
-        console.print("=" * 71)
-        console.print(f"Mensagens do {usuario}: ")
-        console.print("=" * 71)
-
-        for id_msg, usuario, mensagem, data_str in dados:
-            timestamp = datetime.fromisoformat(data_str)
-            msg = Mensagem(usuario, mensagem, id_msg, timestamp)
-            console.print(msg.formatar())
             
-        console.print("=" * 71)
-        
+        return dados
+
     def limpar_chat(self): # Desabilitado
-        console.print("Limpando histórico de mensagens")
         self.db.deletar_chat()

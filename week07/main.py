@@ -5,8 +5,10 @@ import traceback
 import questionary
 from chat import Chat
 from logger import setup_logging
+from message import Mensagem
 from exceptions import AuthError, DatabaseError
 from cloud_config import Cloud_Config
+from datetime import datetime
 from rich.console import Console
 from rich.panel import Panel
 from rich.align import Align
@@ -73,8 +75,9 @@ def menu_chat(usuario_logado: str):
             questionary.Choice(title= "Enviar mensagem", value=2),
             questionary.Choice(title= "Histórico", value=3),
             questionary.Choice(title= "Buscar Mensagem", value=4),
-            questionary.Choice(title= "Trocar usuário", value=5),
+            questionary.Choice(title= "Sair da conta", value=5),
             questionary.Separator(),
+
             questionary.Choice(title= "Retornar ao login", value=0),
     ]
     
@@ -122,7 +125,7 @@ def main():
 
         if opcao == 1:
             console.print("=" * 71, style="grey70")
-            console.print(" " * 20, "Digite seus dados 🔑")
+            console.print(" " * 20, "Digite seus dados 🔑", style="bold cyan")
             console.print("=" * 71, style="grey70")
             usuario = input("Uuário: ").strip()
             senha = getpass.getpass("Senha: ").strip()
@@ -135,7 +138,7 @@ def main():
 
                     if opcao_chat == 1:
                         console.print("=" * 71, style="grey70")
-                        console.print(" " * 20, "Meu Perfil 👤")
+                        console.print(" " * 20, "Meu Perfil 👤", style="bold cyan")
                         console.print("=" * 71, style="grey70")
                         info = chat.auth.exibir_info_usuario()
                         if info:
@@ -179,7 +182,19 @@ def main():
                         console.print(" " * 20, "Buscar Mensagens 🔍")
                         console.print("=" * 71, style="grey70")
                         usuario_busca = input("Digite o nome do usuario: ")
-                        chat.buscar_mensagens_usuario(usuario_busca)
+
+                        lista_mensagens = chat.buscar_mensagens_usuario(usuario_busca)
+                        if not lista_mensagens:
+                            log.info("Nenhuma mensagem do {usuario_busca} foi encontrada")
+                        else:
+                            console.print("=" * 71, style="grey70")
+                            console.print(f"Mensagens de [bold]{usuario_busca}[/bold]:")
+                            console.print("=" * 71, style="grey70")
+                            for dados_msg in lista_mensagens:
+                                id_msg, usuario, mensagem, data_str = dados_msg
+                                timestamp = datetime.fromisoformat(data_str)
+                                msg = Mensagem(usuario, mensagem, id_msg, timestamp)
+                                console.print(msg.formatar())
 
                     elif opcao_chat == 5:
                         console.print("=" * 71, style="grey70")

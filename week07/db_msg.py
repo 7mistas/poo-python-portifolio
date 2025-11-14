@@ -19,6 +19,7 @@ class Database:
         self.db_nome = db_nome
         log.info("Iniciando Database de mensagens e criando tabela...")
         self.criar_tabelas()
+
     def conectar(self) -> sqlite3.Connection:
         """
         Cria um caminho absoluto e retorna uma nova conexão com o Banco de Dados.
@@ -37,27 +38,21 @@ class Database:
         Garante  que o esquema de dados esteja correto.
         """
 
-        conn = None
         try:
-            conn = self.conectar()
-            cursor = conn.cursor()
+            with self.conectar() as conn:
+                cursor = conn.cursor()
 
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS mensagens (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    usuario TEXT NOT NULL,
-                    mensagem TEXT NOT NULL,
-                    timestamp TEXT TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-            conn.commit()
-            log.info("Tabela 'mensagens' criada com sucesso!")
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS mensagens (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        usuario TEXT NOT NULL,
+                        mensagem TEXT NOT NULL,
+                        timestamp TEXT TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+                log.info("Tabela 'mensagens' criada com sucesso!")
+
         except sqlite3.Error as e:
-            log.error("Erro na criação da tabela de mensagem: %s", e)
-            if conn:
-                conn.rollback
-
-        finally:
-            if conn:
-                conn.close()
+            log.error("[Erro] Na criação da tabela de mensagem: %s", e)
+            raise DatabaseError("Erro na criação da tabela de mensagens: %s ", e)
 
     def inserir_mensagem(self, usuario: str, mensagem: str) -> bool:
         """
@@ -71,25 +66,18 @@ class Database:
             bool: True se a mensagem foi registrada no banco de dado,
             False caso contrário.
         """
-        conn = None
         try:
-            conn = self.conectar()
-            cursor = conn.cursor()
-            
-            cursor.execute('''
-                INSERT INTO mensagens (usuario, mensagem, timestamp)
-                VALUES(?, ?, ?)''', (usuario, mensagem, datetime.now()))
-            conn.commit()
-            log.info("Mensagem do usuario inserida com sucesso %s às %s", usuario, datetime.now())
+            with self.conectar() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    INSERT INTO mensagens (usuario, mensagem, timestamp)
+                    VALUES(?, ?, ?)''', (usuario, mensagem, datetime.now()))
+                log.info("Mensagem do usuario inserida com sucesso %s às %s", usuario, datetime.now())
 
         except sqlite3.Error as e:
             log.error("Erro ao inserir mensagem na tabela: %s", e)
-            if conn:
-                conn.rollback()
             raise DatabaseError("Erro ao salvar mensagem no banco de dados: %s", e)
-        finally:
-            if conn:
-                conn.close()
 
     def listar_mensagens(self, limite: int = 50) -> List[Tuple]:
         """
@@ -101,31 +89,27 @@ class Database:
         Returns:
             List [Tuple]: Retorna uma lista de tuplas com os dados de cada mensagens.
         """
-        conn = None
         try:
-            conn = self.conectar()
-            cursor = conn.cursor()
+            with self.conectar() as conn:
+                cursor = conn.cursor()
 
-            cursor.execute('''
-                SELECT id, usuario, mensagem, timestamp
-                FROM mensagens
-                ORDER BY timestamp DESC
-                LIMIT ?
-                ''', (limite,))
+                cursor.execute('''
+                    SELECT id, usuario, mensagem, timestamp
+                    FROM mensagens
+                    ORDER BY timestamp DESC
+                    LIMIT ?
+                    ''', (limite,))
 
-            mensagens = cursor.fetchall()
-            log.info("Até número de %s mensagens foram listadas", limite)
-            return mensagens
+                mensagens = cursor.fetchall()
+                log.info("Até número de %s mensagens foram listadas", limite)
+                return mensagens
 
         except sqlite3.Error as e:
-            log.error("Iniciando Database de mensagens e criando tabelas...")
+            log.error("[Erro] Falha na busca das mensagnes no bamco de dados: %s", e)
+            raise DatabaseError("Não foi possivel listar as mensagens.")
             return []
 
-        finally:
-            if conn:
-                conn.close()
-
-    def buscar_usuario(self, usuario: str) -> List[Tuple]:
+    def pegar_mensagem_usuario(self, usuario: str) -> List[Tuple]:
         """
         Busca e retorna uma lista de mensagens do usuario atual.
 
@@ -135,30 +119,26 @@ class Database:
         Returns:
             List [Tuple]: Uma lista de tuplas com as mensagens do usuario.
         """
-        conn = None
         try:
-            conn = self.conectar()
-            cursor = conn.cursor()
+            with self.conectar() as conn:
+                cursor = conn.cursor()
 
-            # Lógica de busca parcial (%{usuario}%)
-            cursor.execute('''
-                SELECT id, usuario, mensagem, timestamp
-                FROM mensagens
-                WHERE usuario LIKE ?
-                ORDER BY timestamp ASC
-                ''', (f'%{usuario}%',))
+                # Lógica de busca parcial (%{usuario}%)
+                cursor.execute('''
+                    SELECT id, usuario, mensagem, timestamp
+                    FROM mensagens
+                    WHERE usuario LIKE ?
+                    ORDER BY timestamp ASC
+                    ''', (f'%{usuario}%',))
 
-            mensagens = cursor.fetchall()
-            log.info("A busca pelo %s foi bem sucedida", usuario)
-            return mensagens
+                mensagens = cursor.fetchall()
+                log.info("A busca pelo %s foi bem sucedida", usuario)
+                return mensagens
 
         except sqlite3.Error as e:
             log.error("Falha ao buscar o usuario $s: %s", usuario, e)
+            raise DatabaseError("Não foi possivel buscar as mensagens do usuário")
             return []
-        
-        finally:
-            if conn:
-                conn.close()
 
     def deletar_mensagem(self, id_mensagem: str ) -> bool:
         """
@@ -171,25 +151,18 @@ class Database:
             bool: True sa a mensagem for deletada do banco,
             False caso contrário
         """
-        conn = None
         try:
-            conn = self.conectar()
-            cursor = conn.cursor()
-            cursor.execute('DELETE FROM mensagens WHERE id = ?', (id_mensagem,))
+            with self.conectar() as conn:
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM mensagens WHERE id = ?', (id_mensagem,))
 
-            conn.commit()
-            log.info("A mensagem do ID: $s foi deleta com sucesso!", id_mensagem)
-            return True
+                log.info("A mensagem do ID: $s foi deleta com sucesso!", id_mensagem)
+                return True
 
         except Sqlite3.Error as e:
             log.error("Erro ao deletar mensagem do ID $s: %s", id_mensagem, e)
-            if conn:
-                conn.rollback()
+            raise DatabaseError("Não foi possivel deletar a mensagem")
             return False
-
-        finally:
-            if conn:
-                conn.close()
         
     def deletar_chat(self) -> bool: # Fechado na ultima versão.
         """
@@ -199,23 +172,16 @@ class Database:
             bool: True se todas mensagens forem deletadas do banco,
             False caso o contrário.
         """
-        conn = None
         try:
-            conn = self.conectar()
-            cursor = conn.cursor()
-            
-            cursor.execute('DELETE FROM mensagens')
+            with self.conectar() as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('DELETE FROM mensagens')
 
-            conn.commit()
-            log.info("Todas as mensagens foram deletadas com sucesso!")
-            return True
+                log.info("Todas as mensagens foram deletadas com sucesso!")
+                return True
 
         except sqlite3.Error as e:
-            log.error("Erro ao deletar todas as mensagens")
-            if conn:
-                conn.rollback()
+            log.error("[Erro] Ao deletar todas as mensagens")
+            raise DatabaseError("Não foi possivel deletar todas as mensagens")
             return False
-
-        finally:
-            if conn:
-                conn.close()
