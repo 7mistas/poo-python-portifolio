@@ -188,7 +188,7 @@ def get_messages():
         mensagens = chat_app.carregar_mensagens()
         mensagens_formatadas = [msg.formatar() for msg in mensagens]
 
-        return status_response(
+        return success_response(
             "Mensages listadas com sucesso",
             data=mensagens_formatadas,
             status_code=200

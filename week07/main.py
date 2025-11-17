@@ -121,7 +121,7 @@ def main():
             console.print("=" * 71, style="grey70")
             console.print(" " * 20, "Digite seus dados 🔑", style="bold cyan")
             console.print("=" * 71, style="grey70")
-            usuario = input("Uuário: ").strip()
+            usuario = input("Usuário: ").strip()
             senha = getpass.getpass("Senha: ").strip()
             try:
                 response = requests.post(
@@ -130,7 +130,8 @@ def main():
                 )
 
                 if response.status_code == 200:
-                    TOKEN_GLOBAL = response.json()['token']
+                    resposta_json = response.json()
+                    TOKEN_GLOBAL = resposta_json['data']['token']
                     log.info("Login para o usuário %s foi realizado com sucesso", usuario)
                     console.print(f"[bold cyan]\nBem vindo, {usuario}!\n[/bold cyan]")
 
@@ -149,7 +150,7 @@ def main():
                                 )
 
                                 if resp_perfil.status_code == 200:
-                                    info = resp_perfil.json()
+                                    info = resp_perfil.json().get('data')
                                     console.print("\n" + "=" * 71, style='grey70')
                                     console.print(f"ID: {info['id']}")
                                     console.print(f"Usuário: {info['usuario']}")
@@ -185,10 +186,13 @@ def main():
                                         headers={"Authorization": f"Bearer {TOKEN_GLOBAL}"}
                                 )
                                 if resp_hist.status_code == 200:
-                                    historico = resp_hist.json()
-                                    for msg in historico:
-                                        console.print(msg)
-                                        console.print("=" * 71, style="grey70")
+                                    historico = resp_hist.json().get('data',[])
+                                    if not historico:
+                                        console.print("Nenhuma mensagem no histórico")
+                                    else:
+                                        for msg in historico:
+                                            console.print(msg)
+                                            console.print("=" * 71, style="grey70")
                                 else:
                                     console.print(f"Erro ao buscar o histórico: {resp_hist.json().get('erro')}")
 
@@ -205,7 +209,7 @@ def main():
                                 )
 
                                 if resp_busca.status_code == 200:
-                                    mensagens_formatadas = resp_busca.json()
+                                    mensagens_formatadas = resp_busca.json().get('data', [])
                                     if not mensagens_formatadas:
                                         console.print(f"Nenhuma mensagem encontrada para '{usuario_busca}'.")
                                     else:
@@ -265,7 +269,7 @@ def main():
                 )
 
                 if response.status_code == 201:
-                    console.print(f"O usuario {'ususario'}, foi criado com sucesso")
+                    console.print(f"O usuario {'ussario'}, foi criado com sucesso")
                 else:
                     erro_msg = response.json().get('erro', 'Erro desconhecido')
                     console.print(f"[ERRO] {erro_msg}")

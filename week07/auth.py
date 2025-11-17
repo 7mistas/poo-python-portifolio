@@ -39,6 +39,6 @@ class Autenticacao:
         return self.usuario_logado
 
     def exibir_info_usuario(self, user_id) -> Optional[dict]:
-        if not user_id:
+        if user_id:
            return self.db_auth.obter_info(user_id)
         return None
