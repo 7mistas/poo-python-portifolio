@@ -10,6 +10,6 @@ def setup_logging():
             format="[%(asctime)s] [%(levelname)s] %(name)s: %(message)s",
             handlers=[
                 logging.FileHandler("chat_app.log"), 
-                # Usar .StreamHandler() aqui para uso do console no debug.
+                logging.StreamHandler()
                 ]
             )

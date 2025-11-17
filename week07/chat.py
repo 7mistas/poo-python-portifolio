@@ -18,7 +18,7 @@ class Chat:
         self.db = Database("chat.db")
         self.auth = Autenticacao()
 
-    def enviar_mensagem(self, conteudo: str) -> bool:
+    def enviar_mensagem(self, user_id: int, conteudo: str):
         """
         Valida o login e o conteúdo, e envia a mensagem para o banco de dados
 
@@ -29,21 +29,16 @@ class Chat:
             bool: True se a mensagem for enviada,
             False caso o contrário.
         """
-        # Validações de usuário e conteudo: 
-        if not self.auth.esta_logado():
-            log.warning("Tentativa de envio de mensagem sem login.")
-            raise AuthError("[ERRO!] Voce precsa estar logado!")
-
         if not conteudo or conteudo.strip() == "":
             log.warning("Tentativa de envio de mensagem vazia.")
             raise ChatError("[ERRO!] A mensagem não pode ser vazia!")
 
-        try:
-            # Insere a mensagem no banco de dados:
-            self.db.inserir_mensagem(self.auth.usuario_logado, conteudo)
-        except DatabaseError as e:
-            log.error("Erro ao inserir mensagem no banco de dados: %s", e)
-            raise DatabaseError("Falha ao salvar a mensagem: %s",e)
+        info = self.auth.db_auth.obter_info(user_id)
+        if not info:
+            raise DatabaseError("[ERRO!] A mensagem não pode ser vazia!")
+        usuario_nome = info['usuario']
+
+        self.db.inserir_mensagem(usuario_nome, conteudo)
     
     def carregar_mensagens(self, limite: int = 50) -> List[Mensagem]:
         """

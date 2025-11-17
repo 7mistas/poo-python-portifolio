@@ -14,12 +14,14 @@ class Autenticacao:
     def registrar(self, usuario: str, senha: str, email: str = "") -> Tuple[bool, str]:
         self.db_auth.registrar_usuario(usuario, senha, email)
 
-    def login(self, usuario: str, senha: str) -> Tuple[bool, str]:
+    def login(self, usuario: str, senha: str) -> int:
         user_id = self.db_auth.autenticar_usuario(usuario, senha)
         log.debug("Tenando login para o Usuário: %s ID: %s", usuario, user_id)
         
         self.id_logado = user_id
         self.usuario_logado = usuario
+        log.info("Sessão iniciada para %s (ID: %s)", usuario, user_id)
+        return user_id
 
     def logout(self):
         if self.usuario_logado:
@@ -36,7 +38,7 @@ class Autenticacao:
     def get_usuario_atual(self) -> Optional[str]:
         return self.usuario_logado
 
-    def exibir_info_usuario(self) -> Optional[dict]:
-        if self.id_logado:
-           return self.db_auth.obter_info(self.id_logado)
+    def exibir_info_usuario(self, user_id) -> Optional[dict]:
+        if not user_id:
+           return self.db_auth.obter_info(user_id)
         return None
