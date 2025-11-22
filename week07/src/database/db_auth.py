@@ -4,7 +4,7 @@ import sqlite3
 from pathlib import Path
 from typing import Optional, Tuple
 from datetime import datetime
-from exceptions import AuthError, DatabaseError
+from src.exceptions import AuthError, DatabaseError
 
 log = logging.getLogger(__name__)
 
@@ -15,10 +15,11 @@ class Database_Auth:
         self.criar_tabela_usuarios()
 
     def conectar(self) -> sqlite3.Connection:
-        caminho_base = Path(__file__).parent
-        caminho_completo = caminho_base / self.db_nome
+        raiz_projeto = Path(__file__).resolve().parents[2]
+        caminho_base = raiz_projeto / 'data'
+        caminho_base.mkdir(parents=True, exist_ok=True)
 
-        return sqlite3.connect(caminho_completo)
+        return sqlite3.connect(caminho_base / self.db_nome)
 
     def criar_tabela_usuarios(self):
         try:

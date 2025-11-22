@@ -1,8 +1,9 @@
+import os
 import logging
 from datetime import datetime
-from db_msg import Database
-from message import Mensagem
-from auth import Autenticacao
+from src.database.db_msg import Database
+from src.message import Mensagem
+from src.auth import Autenticacao
 from typing import List, Tuple
 
 log = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ class Chat:
         """
         Inicializa o banco de dados e defini o nome do usuario_atual com o padrão: None.
         """
-        self.db = Database("chat.db")
+        self.db = Database(os.getenv("DB_PATH", "/app/data/chat.db"))
         self.auth = Autenticacao()
 
     def enviar_mensagem(self, user_id: int, conteudo: str):

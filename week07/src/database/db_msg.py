@@ -3,7 +3,7 @@ import sqlite3
 from datetime import datetime
 from typing import List, Tuple
 from pathlib import Path
-from exceptions import AuthError, DatabaseError
+from src.exceptions import AuthError, DatabaseError
 
 log = logging.getLogger(__name__) 
 
@@ -27,10 +27,11 @@ class Database:
         Returns: 
             sqlite3.Connection: Conexão ativa com o SQLite. 
         """
-        caminho_base = Path(__file__).parent
-        caminho_completo = caminho_base / self.db_nome
+        raiz_projeto = Path(__file__).resolve().parents[2]
+        caminho_base = raiz_projeto / 'data'
+        caminho_base.mkdir(parents=True, exist_ok=True) 
 
-        return sqlite3.connect(caminho_completo)
+        return sqlite3.connect(caminho_base / self.db_nome)
 
     def criar_tabelas(self):
         """

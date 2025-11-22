@@ -1,19 +1,34 @@
+import os
 import logging
 from flask import Flask, jsonify, request
 from flask_jwt_extended import  create_access_token, jwt_required, get_jwt_identity, JWTManager
+from flask_cors import CORS
 from flasgger import Swagger, swag_from
-from chat import Chat 
-from logger import setup_logging
-from message import Mensagem
-from datetime import datetime
-from exceptions import AuthError, ChatError, DatabaseError
+from datetime import datetime, timedelta
+from src.chat import Chat 
+from src.logger import setup_logging
+from src.message import Mensagem
+from src.exceptions import AuthError, ChatError, DatabaseError
 
 setup_logging()
 log = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.config["JWT_SECRET_KEY"] = "senha_secreta"
+
+secret = os.getenv('JWT_SECRET_KEY')
+if not secret:
+    raise ValueError("[DANGER]: CHAVE JWT INEXISTENTE!")
+app.config["JWT_SECRET_KEY"] = secret
+app.config["JWT_ACCESS_TOKEN"] = timedelta(minutes=60)
 app.config["PROPAGATE_EXCEPTIONS"] = True
+
+CORS(app, resources={
+    r"/*": {
+        "origins": os.getenv("ALLOWED_ORIGINS", "*").split(","),
+        "methods": ["GET", "POST", "PUT", "DELETE"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 swagger_config = {
         "headers": [],
@@ -51,14 +66,9 @@ swagger_template = {
         },
         "schemes": ["http", "https"],
         "tags": [
-            {
-                "name": "Autenticação",
-                "description": "Endpoints de registro e login",
-            },
-            {
-                "name": "Mensagens",
-                "description": "Enpoints de envio e busca de mensagens"
-            }
+            {"name": "Autenticação","description": "Endpoints de registro e login"},
+            {"name": "Mensagens","description": "Enpoints de envio e busca de mensagens"},
+            {"name": "Sistema","description": "Enpoints de envio e busca de mensagens"}
         ]
     } 
 
@@ -88,6 +98,48 @@ def error_response(message, status_code=400):
         "error": message
         }), status_code
 
+@app.errorhandler(404)
+def not_found(error):
+    """Endpoint não encontrado"""
+    return error_response("Endpoint não encontrado", 404)
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Erro interno do servidor"""
+    return error_response("Erro interno do servidor", 500)
+
+@jwt.expired_token_loader
+def expired_token_callback(error):
+    """Token JWT expirado"""
+    return error_response("Token JWT expirado", 401)
+
+@jwt.invalid_token_loader
+def invalid_token_callback(eror):
+    """Token JWT inválido"""
+    return error_response("Token JWT inválido")
+
+@jwt.unauthorized_loader
+def missing_token_callback(error):
+    """Token JWT inexistente"""
+    return error_response("Token não autorizado")
+
+@app.route("/", methods=["GET"])
+def index():
+    """
+    Página inicial da API
+    """
+    return success_response(
+        "ChatAWS API v1.0",
+        data={
+            "version": "1.0.0",
+            "documentation": "/docs",
+            "health": "/health",
+            "endpoints": {
+                "auth": ["/auth/register", "/auth/login", "/auth/me"],
+                "messages": ["/messages/post", "/messages/all", "/messages/search"]
+            }
+        }
+    )
 
 @app.route("/auth/register", methods=["POST"])
 def register():
@@ -111,6 +163,17 @@ def register():
         log.warning("Falha no registro do usuário %s: %s", usuario, e)
         return error_response(str(e), 400)
 
+@app.route("/health", methods=["GET"])
+def health():
+    """Endpoint que checa se a API está operacional"""
+    health_status = {
+                "status": "healthy",
+                "timestamp": datetime.now().isoformat(),
+                "database": "connected" if chat_app else "error"
+    }
+    status_code = 200 if chat_app else "error"
+    return success_response("API operacional", data=health_status, status_code=status_code)
+    
 @app.route("/auth/login", methods=["POST"])
 def login():
     """
@@ -226,18 +289,15 @@ def get_messages_user():
         log.error("[Erro] Fatal no endpoint de busca: %s", e)
         return error_response(str(e), 500)
 
-@app.route("/health", methods=["GET"])
-def health():
-    """ Verifica o status da API"""
-    return success_response(
-        "API funcionando corretamente",
-        data={
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat()
-        }
-    )
-
-
 if __name__ == "__main__":
+    ambiente = os.getenv("FLASK_ENV", "development")
+    debug = ambiente == "development"
+    if not debug:
+        print("\n" + "="*70)
+        print("ChatAWS API rodando em PRODUÇÃO")
+        print("Documentação: http://localhost:5000/docs")
+        print("Health Check: http://localhost:5000/health")
+        print("="*70 + "\n")
+
     log.info("Iniciando o servidor...")
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", debug=debug, port=5000)

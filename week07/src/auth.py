@@ -1,7 +1,7 @@
 import logging
-from db_auth import Database_Auth
+from src.database.db_auth import Database_Auth
+from src.exceptions import AuthError, DatabaseError
 from typing import Optional, Tuple
-from exceptions import AuthError, DatabaseError
 
 log = logging.getLogger(__name__)
 
@@ -17,7 +17,6 @@ class Autenticacao:
     def login(self, usuario: str, senha: str) -> int:
         user_id = self.db_auth.autenticar_usuario(usuario, senha)
         log.debug("Tenando login para o Usuário: %s ID: %s", usuario, user_id)
-        
         self.id_logado = user_id
         self.usuario_logado = usuario
         log.info("Sessão iniciada para %s (ID: %s)", usuario, user_id)

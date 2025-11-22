@@ -4,23 +4,27 @@ import getpass
 import requests
 import traceback
 import questionary
-from logger import setup_logging
+from dotenv import load_dotenv
 from datetime import datetime
-from cloud_config import Cloud_Config
+from src.logger import setup_logging
+from src.cloud_config import Cloud_Config
 from rich.console import Console
 from rich.panel import Panel
 from rich.align import Align
 from rich.text import Text
 from pyfiglet import Figlet
 
-# Inicia o modulo de console do Rich para gráfico na CLI.
 console = Console(force_terminal=True, color_system="truecolor")
 f = Figlet(font='graffiti')
 
-# Inicia o modulo de logs do ChatAWS.
 log = logging.getLogger(__name__)
 
-BASE_URL = "http://127.0.0.1:5000"
+load_dotenv()
+
+BASE_URL = os.getenv("API_URL")
+if not BASE_URL:
+    log.warning("A variável de ambiente não foi definida.")
+    exit 
 TOKEN_GLOBAL = None
 
 def menu_login():
